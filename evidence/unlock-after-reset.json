@@ -1,0 +1,28 @@
+{
+  "saved_at_utc": "2026-10-21T08:30:25.590844+00:00",
+  "status": "android_recovered_avb_unlock_persists_through_stock_reboot",
+  "android_boot_completed": true,
+  "persistent_avb_unlock_observed": true,
+  "verification_basis": "The secure-state writer was accepted and the unmodified getter returned state 0 in test24. After the user-reported physical power cycle and factory reset, stock Android reports flash.locked=0, vbmeta.device_state=unlocked, verifiedbootstate=orange. These properties survived a further ordinary reboot with normal startup and no mounted USB.",
+  "stock_startup": "run storeboot_base;",
+  "original_startup_verified_after_boot": true,
+  "factory_reset_completed": true,
+  "service_pid_after": 393,
+  "properties": {
+    "sys.boot_completed": "1",
+    "ro.build.fingerprint": "onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys",
+    "ro.bootloader": "01.01.260304.175641",
+    "ro.boot.flash.locked": "0",
+    "ro.boot.vbmeta.device_state": "unlocked",
+    "ro.boot.verifiedbootstate": "orange",
+    "ro.boot.veritymode": "enforcing"
+  },
+  "root_proven": false,
+  "adb_uid": 2000,
+  "custom_firmware_boot_proven": false,
+  "hardware_secure_boot_disabled_proven": false,
+  "independent_secure_getter_capture_after_cold_boot": false,
+  "test25_limit": "The read-only USB verification produced no captures; no direct post-cold-boot getter receipt exists.",
+  "pending_device_actions": [],
+  "background_work_active": false
+}

@@ -1,0 +1,36 @@
+{
+  "time": "2026-10-21T09:58:57.865831+00:00",
+  "unit_tests_passed": 12,
+  "device_contacted": false,
+  "hardware_validation_of_wrapper": false,
+  "models": {
+    "read": {
+      "native_cases_passed": 13,
+      "collector_cases_passed": 8,
+      "device_contacted": false
+    },
+    "unlock": {
+      "native_cases_passed": 19,
+      "collector_cases_passed": 10,
+      "device_contacted": false
+    },
+    "root": {
+      "passed": 15,
+      "device_contacted": false
+    }
+  },
+  "native_rebuilds_byte_identical": true,
+  "all_passed": true,
+  "limitations": "Offline models and mocked device responses only. The new wrapper has no end-to-end hardware validation.",
+  "apk_rebuilds": {
+    "read_dex_identical": true,
+    "unlock_dex_identical": true,
+    "root_dex_identical": true,
+    "signatures_verified": true,
+    "signing_keys_local_only": true
+  },
+  "historical_image_passed_new_layout_and_hash_guards": true,
+  "packaged_tested_apks_and_native_payloads_unchanged": true,
+  "personal_address_usb_and_host_path_scan_passed": true,
+  "description": "Offline packaging validation. Original device measurements are in the separate evidence receipts."
+}

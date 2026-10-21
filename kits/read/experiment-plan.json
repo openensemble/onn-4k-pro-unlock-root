@@ -1,0 +1,36 @@
+{
+  "fingerprint": "onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys",
+  "bootloader": "01.01.260304.175641",
+  "original": "run storeboot_base;",
+  "checkpoint": "After bootm start, save and size-check the exact input image before bootm go; do not enter if checkpoint write/size check fails.",
+  "capture_change": "Use a fresh USB subdirectory. Require an initial environment trace before image loading; update it after bootm start using separate scratch memory 0x3100000. Keep matching input checkpoint before native entry. Do not attribute missing captures to native execution.",
+  "experiment": 23,
+  "package": "local.onn.secureread",
+  "receiver": "SecureReadReceiver",
+  "candidate": "setenv onn23_reset no; setenv onn23_gate not_consumed; if usb start; then if fatsize usb 0:1 ONN23/ONNARM23.TXT; then if fatrm usb 0:1 ONN23/ONNARM23.TXT; then if fatsize usb 0:1 ONN23/ONNARM23.TXT; then setenv onn23_gate removal_unverified; else setenv onn23_gate consumed; setenv onn23_load failed; setenv onn23_start skipped; setenv onn23_checkpoint skipped; setenv onn23_go skipped; setenv onn23_saved no; setenv onn23_stage before_load; if env export -t 0x3100000; then if fatwrite usb 0:1 0x3100000 ONN23/ONNST23.TXT ${filesize}; then if load usb 0:1 0x3000000 ONN23/ONNPRO23.IMG; then setenv onn23_load ok; if test ${filesize} = 840; then if itest.l *0x3000040 == 0x10003002; then if itest.l *0x3000640 == 0x5a5a5a5a; then if dcache flush; then if icache flush; then setenv onn23_start failed; if bootm start 0x3000000; then setenv onn23_start ok; setenv onn23_stage before_entry; if env export -t 0x3100000; then if fatwrite usb 0:1 0x3100000 ONN23/ONNST23.TXT ${filesize}; then setenv onn23_early_trace updated; fi; fi; setenv onn23_checkpoint write_failed; if fatwrite usb 0:1 0x3000000 ONN23/ONNBEG23.BIN 0x840; then setenv onn23_checkpoint size_failed; if fatsize usb 0:1 ONN23/ONNBEG23.BIN; then if test ${filesize} = 840; then setenv onn23_checkpoint saved; setenv autostart yes; setenv onn23_go entered; if bootm go; then setenv onn23_go returned_zero; fi; fi; fi; fi; fi; if itest.l *0x3000644 == 5; then setenv onn23_reset yes; fi; dcache flush; icache flush; if usb start; then if fatwrite usb 0:1 0x3000000 ONN23/ONNRET23.BIN 0x840; then setenv onn23_saved yes; fi; fi; fi; fi; fi; fi; fi; fi; fi; fi; if env export -t 0x3000000; then if fatwrite usb 0:1 0x3000000 ONN23/ONNCAP23.TXT ${filesize}; then setenv onn23_capture saved; fi; fi; fi; fi; fi; fi; if test ${onn23_reset} = yes; then reset; else run storeboot_base; fi;",
+  "usb_mount": "/storage/ABCD-1234/ONN23",
+  "new_usb_files": [
+    "ONNST23.TXT",
+    "ONNBEG23.BIN",
+    "ONNRET23.BIN",
+    "ONNCAP23.TXT"
+  ],
+  "input_gate_file": "ONNARM23.TXT",
+  "input_gate_sha256": "4d08b7f15d5986318b3e1979b325be64f05c4e00cce1b71866a0bb5eca57d31e",
+  "payload_file": "ONNPRO23.IMG",
+  "payload_sha256": "76b82087fb7c40c35e109e7cafe2fe66a0fa12a21492c33e12046e67bd37a576",
+  "marker_property": "ro.boot.onn23",
+  "prefixes": {
+    "0xbf621d24": "fd7bbca9fd030091f35301a9740b00d0",
+    "0xbf64bcc8": "fd7bbba9fd030091f35301a9340a0090",
+    "0xbf6702f4": "fd7bbba9fd030091f35301a9a3430191"
+  },
+  "target": "0xbf621d24",
+  "target_signature": "bool get_avb_lock_state(uint32_t *state)",
+  "memory_access": "Calls the stock getter once using the normal C ABI; records its success flag and state. Checks original code prefixes before and after. No code-page permission changes, patches, or lock-state write commands.",
+  "risk": "A stock native function call could fault. The USB gate is consumed before entry; a post-call integrity failure requests reset; normal completion falls through to stock boot.",
+  "persistent_lock_write": false,
+  "firmware_flash": false,
+  "root_or_unlock_proven": false,
+  "limits": "The caller issues a read through existing stock code; vendor trusted-application internals are not audited. A successful state read does not prove permission to write a new state."
+}

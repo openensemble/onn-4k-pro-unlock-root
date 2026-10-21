@@ -1,0 +1,27 @@
+#!/system/bin/sh
+# Explicit recovery action only. Does not relock or reboot the device.
+set -eu
+BASE=@DEVICE_DIR@
+TARGET=/dev/block/by-name/boot_b
+STOCK=$BASE/stock-boot-b.img
+file_sha256() { sha256sum "$1" | cut -d ' ' -f 1; }
+[ "${1:-}" = restore-authorized ] || exit 2
+[ "$(id -u)" = 0 ]
+[ "$(getprop ro.build.fingerprint)" = 'onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys' ]
+[ "$(getprop ro.boot.flash.locked)" = 0 ]
+[ -b "$TARGET" ]
+[ "$(readlink -f "$TARGET")" = /dev/block/mmcblk0p21 ]
+[ "$(blockdev --getsize64 "$TARGET")" = 100663296 ]
+[ "$(stat -c %s "$STOCK")" = 100663296 ]
+[ "$(file_sha256 "$STOCK")" = 5c5a874dd2e3e5b2ad87903a3d53a6f8b3ebcebe2ad64a28fd837d1a07ceaad8 ]
+case "$(file_sha256 "$TARGET")" in
+  5c5a874dd2e3e5b2ad87903a3d53a6f8b3ebcebe2ad64a28fd837d1a07ceaad8) echo STOCK_ALREADY_PRESENT; exit 0 ;;
+  2447a78a0580a804b3997b3920e9198a437aedf7294ec2907952d2ef751d36a3) ;;
+  *) echo UNKNOWN_IMAGE_REQUIRES_REVIEW >&2; exit 1 ;;
+esac
+blockdev --setrw "$TARGET"
+[ "$(blockdev --getro "$TARGET")" = 0 ]
+dd if="$STOCK" of="$TARGET" bs=1048576 count=96 conv=fsync,notrunc
+sync
+[ "$(file_sha256 "$TARGET")" = 5c5a874dd2e3e5b2ad87903a3d53a6f8b3ebcebe2ad64a28fd837d1a07ceaad8 ]
+echo STOCK_BOOT_B_RESTORED_AND_VERIFIED

@@ -1,0 +1,49 @@
+{
+  "started_at_utc": "2026-10-21T09:26:01.105289+00:00",
+  "reboot_requested": true,
+  "android_returned": true,
+  "root_proven_after_reboot": true,
+  "permanent_root_proven": true,
+  "usb_removal_confirmed_by_user": true,
+  "partition_hashes_before_reboot": {
+    "/dev/block/by-name/boot_a": "e7108df74ab960ae614b9eabab6591b4ea3c4d4ed09f266821a152b0b363fb4e",
+    "/dev/block/by-name/boot_b": "2447a78a0580a804b3997b3920e9198a437aedf7294ec2907952d2ef751d36a3",
+    "/dev/block/by-name/vbmeta_b": "e7ac8896990e6435229d60ede3f0c513c11fb08f4bfe5f1211c75f9c2d84093a",
+    "/dev/block/by-name/vendor_boot_b": "13a13cc207cdb018abb1c018fbffa9334c9a3bff496b3e70212bfd497e50ec2c"
+  },
+  "usb_volume_absent_before_reboot": true,
+  "stock_startup_before_reboot": "run storeboot_base;",
+  "reboot_client_timeout": true,
+  "properties_after": {
+    "ro.build.fingerprint": "onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys",
+    "ro.bootloader": "01.01.260304.175641",
+    "ro.boot.slot_suffix": "_b",
+    "ro.boot.flash.locked": "0",
+    "ro.boot.vbmeta.device_state": "unlocked",
+    "ro.boot.verifiedbootstate": "orange",
+    "ro.boot.veritymode": "enforcing",
+    "ro.boot.onn_rootprobe": "",
+    "sys.boot_completed": "1"
+  },
+  "root_identity": {
+    "returncode": 0,
+    "stdout": "uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0\n",
+    "stderr": ""
+  },
+  "partition_hashes_after_reboot": {
+    "/dev/block/by-name/boot_a": "e7108df74ab960ae614b9eabab6591b4ea3c4d4ed09f266821a152b0b363fb4e",
+    "/dev/block/by-name/boot_b": "2447a78a0580a804b3997b3920e9198a437aedf7294ec2907952d2ef751d36a3",
+    "/dev/block/by-name/vbmeta_b": "e7ac8896990e6435229d60ede3f0c513c11fb08f4bfe5f1211c75f9c2d84093a",
+    "/dev/block/by-name/vendor_boot_b": "13a13cc207cdb018abb1c018fbffa9334c9a3bff496b3e70212bfd497e50ec2c"
+  },
+  "magisk_version_output": "30.7:MAGISK:R\n30700",
+  "stock_startup_after_reboot": "run storeboot_base;",
+  "service_pid_after_reboot": 397,
+  "usb_volume_absent_after_reboot": true,
+  "magisk_environment_verified_after_reboot": true,
+  "usb_boot_path_used": false,
+  "factory_reset_performed": false,
+  "completed_at_utc": "2026-10-21T09:27:15.748681+00:00",
+  "boot_id_changed": true,
+  "evidence_scope": "Selected original successful measurements; device boot IDs and local paths omitted."
+}

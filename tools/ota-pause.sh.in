@@ -1,0 +1,34 @@
+#!/system/bin/sh
+set -eu
+MODDIR=${0%/*}
+[ ! -f "$MODDIR/disable" ] || exit 1
+[ ! -f "$MODDIR/remove" ] || exit 1
+[ "$(/system/bin/getprop ro.build.fingerprint)" = '@FINGERPRINT@' ] || exit 2
+mkdir "$MODDIR/.applying" || exit 3
+finish() {
+    code=$?
+    # A failed attempt must not be silently repeated on the next boot.
+    if [ "$code" -ne 0 ]; then touch "$MODDIR/disable"; fi
+    rmdir "$MODDIR/.applying"
+    exit "$code"
+}
+trap finish EXIT
+. "$MODDIR/common.sh"
+ensure_idle
+[ ! -f "$MODDIR/disable" ] || exit 1
+[ ! -f "$MODDIR/remove" ] || exit 1
+/system/bin/settings put global ota_disable_automatic_update 1
+if [ "$(/system/bin/getprop init.svc.update_engine)" = running ]; then
+    /system/bin/setprop ctl.stop update_engine
+fi
+wait_engine stopped
+/system/bin/pm disable-user --user 0 com.onn.updatenotification
+while IFS= read -r component; do
+    [ -n "$component" ] || continue
+    [ ! -f "$MODDIR/disable" ] || exit 1
+    [ ! -f "$MODDIR/remove" ] || exit 1
+    /system/bin/pm disable --user 0 "$component" </dev/null
+done < "$MODDIR/components.txt"
+[ "$(/system/bin/settings get global ota_disable_automatic_update)" = 1 ]
+[ "$(/system/bin/getprop init.svc.update_engine)" = stopped ]
+echo FIRMWARE_UPDATES_PAUSED

@@ -1,0 +1,78 @@
+{
+  "time_utc": "2026-10-21T07:37:27.021592+00:00",
+  "secure_state_read_proven": true,
+  "root_proven": false,
+  "permanent_unlock_proven": false,
+  "captures": {
+    "ONNST23.TXT": true,
+    "ONNBEG23.BIN": true,
+    "ONNRET23.BIN": true,
+    "ONNCAP23.TXT": true
+  },
+  "pre_entry_checkpoint_matches_input": true,
+  "early_markers": {
+    "onn23_checkpoint": "skipped",
+    "onn23_gate": "consumed",
+    "onn23_go": "skipped",
+    "onn23_load": "ok",
+    "onn23_reset": "no",
+    "onn23_saved": "no",
+    "onn23_stage": "before_entry",
+    "onn23_start": "ok"
+  },
+  "markers": {
+    "onn23_checkpoint": "saved",
+    "onn23_early_trace": "updated",
+    "onn23_gate": "consumed",
+    "onn23_go": "returned_zero",
+    "onn23_load": "ok",
+    "onn23_reset": "no",
+    "onn23_saved": "yes",
+    "onn23_stage": "before_entry",
+    "onn23_start": "ok"
+  },
+  "returned_bytes": 2112,
+  "returned_sha256": "9975d5b9ec2e82ad61f1ad5beba1cd311d99cd70992a675f16ac965673086972",
+  "only_expected_bytes_changed": true,
+  "probe_code_unchanged": true,
+  "marker": "ON23",
+  "status": 2,
+  "context": {
+    "x18": "0xb96055c0",
+    "lr": "0xbf662828",
+    "sp": "0xb96040f0",
+    "current_el": "0x8",
+    "sctlr_el2": "0x30c51835",
+    "daif": "0x2c0",
+    "relocaddr": "0xbf616000",
+    "getter": "0xbf621d24",
+    "primary_reader": "0xbf64bcc8",
+    "tee_reader": "0xbf6702f4",
+    "original_par": "0x0"
+  },
+  "getter_success": 1,
+  "lock_state": 1,
+  "getter_call_count": 1,
+  "call_context_preserved": true,
+  "prefixes": {
+    "0xbf621d24": {
+      "before": "fd7bbca9fd030091f35301a9740b00d0",
+      "after": "fd7bbca9fd030091f35301a9740b00d0",
+      "matches_stock": true
+    },
+    "0xbf64bcc8": {
+      "before": "fd7bbba9fd030091f35301a9340a0090",
+      "after": "fd7bbba9fd030091f35301a9340a0090",
+      "matches_stock": true
+    },
+    "0xbf6702f4": {
+      "before": "fd7bbba9fd030091f35301a9a3430191",
+      "after": "fd7bbba9fd030091f35301a9a3430191",
+      "matches_stock": true
+    }
+  },
+  "stock_reader_prefixes_unchanged": true,
+  "native_completion_proven": true,
+  "state_name": "locked",
+  "conclusion": "The unmodified stock secure-state getter returned success and state 1 (locked). No persistent unlock was attempted."
+}

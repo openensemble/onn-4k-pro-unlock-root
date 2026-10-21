@@ -1,0 +1,8 @@
+work/
+.venv/
+__pycache__/
+*.pyc
+*.jks
+*.keystore
+*.pem
+.DS_Store

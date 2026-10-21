@@ -1,0 +1,136 @@
+{
+  "time_utc": "2026-10-21T07:55:50.370500+00:00",
+  "secure_state_change_observed": true,
+  "unlock_request_accepted": true,
+  "root_proven": false,
+  "permanent_unlock_proven": false,
+  "cold_boot_persistence_tested": false,
+  "captures": {
+    "ONNST24.TXT": true,
+    "ONNBEG24.BIN": true,
+    "ONNRET24.BIN": true,
+    "ONNCAP24.TXT": true
+  },
+  "pre_entry_checkpoint_matches_input": true,
+  "early_markers": {
+    "onn24_checkpoint": "skipped",
+    "onn24_gate": "consumed",
+    "onn24_go": "skipped",
+    "onn24_load": "ok",
+    "onn24_reset": "no",
+    "onn24_saved": "no",
+    "onn24_stage": "before_entry",
+    "onn24_start": "ok"
+  },
+  "markers": {
+    "onn24_checkpoint": "saved",
+    "onn24_early_trace": "updated",
+    "onn24_gate": "consumed",
+    "onn24_go": "returned_zero",
+    "onn24_load": "ok",
+    "onn24_reset": "no",
+    "onn24_saved": "yes",
+    "onn24_stage": "before_entry",
+    "onn24_start": "ok"
+  },
+  "returned_bytes": 5184,
+  "returned_sha256": "db1df4da0da0fea875fd53bb579e714e6a240a24890eafe140b88fe596386e5c",
+  "only_expected_bytes_changed": true,
+  "probe_code_unchanged": true,
+  "marker": "ON24",
+  "status": 2,
+  "context": {
+    "x18": "0xb96055c0",
+    "lr": "0xbf662828",
+    "sp": "0xb96040f0",
+    "current_el": "0x8",
+    "sctlr_el2": "0x30c51835",
+    "daif": "0x2c0",
+    "relocaddr": "0xbf616000",
+    "getter": "0xbf621d24",
+    "primary_reader": "0xbf64bcc8",
+    "tee_reader": "0xbf6702f4",
+    "original_par": "0x0"
+  },
+  "calls": {
+    "before_read_success": 1,
+    "before_state": 1,
+    "getter_calls": 2,
+    "write_requests": 1,
+    "open_success": 1,
+    "open_ta_result": 0,
+    "open_origin": 4,
+    "session_id": 2,
+    "invoke_transport_result": 0,
+    "invoke_ta_result": 0,
+    "invoke_origin": 4,
+    "close_result": 0,
+    "after_read_success": 1,
+    "after_state": 0,
+    "all_prefixes_match_after": 1,
+    "open_calls": 1
+  },
+  "request_argument": [
+    3,
+    2,
+    0,
+    4
+  ],
+  "parameter": [
+    1,
+    0,
+    0,
+    0
+  ],
+  "prefixes": {
+    "0xbf621d24": {
+      "before": "fd7bbca9fd030091f35301a9740b00d0",
+      "after": "fd7bbca9fd030091f35301a9740b00d0",
+      "matches_stock": true
+    },
+    "0xbf64bcc8": {
+      "before": "fd7bbba9fd030091f35301a9340a0090",
+      "after": "fd7bbba9fd030091f35301a9340a0090",
+      "matches_stock": true
+    },
+    "0xbf6702f4": {
+      "before": "fd7bbba9fd030091f35301a9a3430191",
+      "after": "fd7bbba9fd030091f35301a9a3430191",
+      "matches_stock": true
+    },
+    "0xbf6217e0": {
+      "before": "fd7bbba9020280d2fd030091f35301a9",
+      "after": "fd7bbba9020280d2fd030091f35301a9",
+      "matches_stock": true
+    },
+    "0xbf6c3598": {
+      "before": "040040f9843440f9840c40f980001fd6",
+      "after": "040040f9843440f9840c40f980001fd6",
+      "matches_stock": true
+    },
+    "0xbf6c3588": {
+      "before": "020040f9423440f9420840f940001fd6",
+      "after": "020040f9423440f9420840f940001fd6",
+      "matches_stock": true
+    },
+    "0xbf621918": {
+      "before": "fd7bb9a9020480d2fd030091f35301a9",
+      "after": "fd7bb9a9020480d2fd030091f35301a9",
+      "matches_stock": true
+    },
+    "0xbf70def8": {
+      "before": "1a8f3f022a292b438fc4de8471358067",
+      "after": "1a8f3f022a292b438fc4de8471358067",
+      "matches_stock": true
+    },
+    "0xbf70df18": {
+      "before": "1a8f3f022a292b438fc4de8471358067",
+      "after": "1a8f3f022a292b438fc4de8471358067",
+      "matches_stock": true
+    }
+  },
+  "stock_prefixes_unchanged": true,
+  "call_context_preserved": true,
+  "native_completion_proven": true,
+  "conclusion": "The stock secure-state reader changed from locked (1) to unlocked (0) after one request. Cold-boot persistence and custom-image boot remain unproven."
+}

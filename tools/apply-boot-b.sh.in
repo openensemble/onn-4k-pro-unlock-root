@@ -1,0 +1,73 @@
+#!/system/bin/sh
+# Fixed device/build/slot installer. Default is read-only verification.
+set -eu
+BASE=@DEVICE_DIR@
+TARGET=/dev/block/by-name/boot_b
+STOCK=$BASE/stock-boot-b.img
+PATCHED=$BASE/patched-boot-b.img
+STOCK_HASH=5c5a874dd2e3e5b2ad87903a3d53a6f8b3ebcebe2ad64a28fd837d1a07ceaad8
+PATCHED_HASH=2447a78a0580a804b3997b3920e9198a437aedf7294ec2907952d2ef751d36a3
+file_sha256() { sha256sum "$1" | cut -d ' ' -f 1; }
+fail() { echo "GUARD_FAILED: $1" >&2; exit 1; }
+
+[ "$(id -u)" = 0 ] || fail identity
+[ "$(getprop ro.build.fingerprint)" = 'onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys' ] || fail firmware
+[ "$(getprop ro.bootloader)" = '01.01.260304.175641' ] || fail bootloader
+[ "$(getprop ro.boot.slot_suffix)" = _b ] || fail slot
+[ "$(getprop ro.boot.flash.locked)" = 0 ] || fail lock
+[ "$(getprop ro.boot.vbmeta.device_state)" = unlocked ] || fail vbmeta_state
+[ "$(getprop sys.boot_completed)" = 1 ] || fail boot_incomplete
+[ "$(cat /proc/sys/kernel/random/boot_id)" = @EXPECTED_BOOT_ID@ ] || fail boot_id
+[ "$(getprop ro.boot.onn_rootprobe)" = ONN-MAGISK-26-20261021 ] || fail temporary_root_boot
+[ -b "$TARGET" ] || fail target_not_block
+[ "$(readlink -f "$TARGET")" = /dev/block/mmcblk0p21 ] || fail target_device
+[ "$(blockdev --getsize64 "$TARGET")" = 100663296 ] || fail partition_size
+[ "$(stat -c %s "$STOCK")" = 100663296 ] || fail stock_size
+[ "$(stat -c %s "$PATCHED")" = 100663296 ] || fail patched_size
+[ "$(file_sha256 "$STOCK")" = "$STOCK_HASH" ] || fail stock_backup_hash
+[ "$(file_sha256 "$PATCHED")" = "$PATCHED_HASH" ] || fail patched_hash
+[ "$(file_sha256 "$TARGET")" = "$STOCK_HASH" ] || fail original_partition_hash
+echo ALL_INSTALL_GUARDS_PASSED
+
+case "${1:-check}" in
+  check) exit 0 ;;
+  apply-authorized) ;;
+  *) fail action ;;
+esac
+
+# The following directory is an atomic one-use guard. A failed attempt must be
+# reviewed, never automatically repeated by deleting this record.
+mkdir "$BASE/flash-attempt" || fail previously_attempted
+NEEDS_RESTORE=no
+finish() {
+  outcome=$?
+  trap - EXIT HUP INT TERM
+  if [ "$NEEDS_RESTORE" = yes ]; then
+    echo FLASH_FAILED_ATTEMPTING_STOCK_RESTORE >&2
+    set +e
+    if [ "$(file_sha256 "$STOCK")" = "$STOCK_HASH" ]; then
+      dd if="$STOCK" of="$TARGET" bs=1048576 count=96 conv=fsync,notrunc
+      sync
+      if [ "$(file_sha256 "$TARGET")" = "$STOCK_HASH" ]; then
+        echo STOCK_BOOT_B_RESTORED_AND_VERIFIED
+      else
+        echo STOCK_RESTORATION_NOT_VERIFIED_DO_NOT_REBOOT >&2
+      fi
+    else
+      echo BACKUP_CHANGED_DO_NOT_REBOOT >&2
+    fi
+    exit 1
+  fi
+  exit "$outcome"
+}
+trap finish EXIT
+trap 'exit 1' HUP INT TERM
+blockdev --setrw "$TARGET"
+[ "$(blockdev --getro "$TARGET")" = 0 ] || fail target_read_only
+NEEDS_RESTORE=yes
+dd if="$PATCHED" of="$TARGET" bs=1048576 count=96 conv=fsync,notrunc
+sync
+[ "$(file_sha256 "$TARGET")" = "$PATCHED_HASH" ] || fail written_partition_hash
+NEEDS_RESTORE=no
+echo PATCHED_BOOT_B_READBACK_VERIFIED
+echo NO_REBOOT_REQUESTED_BY_THIS_SCRIPT

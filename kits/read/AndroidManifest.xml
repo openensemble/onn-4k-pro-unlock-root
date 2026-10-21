@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="local.onn.secureread" android:versionCode="1" android:versionName="1">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="32" />
+    <application android:label="Onn bounded bootloader read" android:debuggable="true"
+        android:allowBackup="false" android:hasCode="true">
+        <uses-library android:name="droidlogic.software.core" android:required="true" />
+        <receiver android:name=".SecureReadReceiver" android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="local.onn.secureread.INSPECT" />
+                <action android:name="local.onn.secureread.NOOP" />
+                <action android:name="local.onn.secureread.RESTART_SERVICE" />
+                <action android:name="local.onn.secureread.APPLY" />
+                <action android:name="local.onn.secureread.RESTORE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

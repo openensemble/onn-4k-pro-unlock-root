@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#161b17">
+  <title>onn. 4K Pro (2024) Unlock &amp; Root Guide | OpenEnsemble</title>
+  <meta name="description" content="Unlock and permanent Magisk root research for the original 2024 onn. 4K Pro (jarvis / SNA). Exact firmware requirements, measured results, and a guided Linux setup.">
+  <link rel="canonical" href="https://openensemble.github.io/onn-4k-pro-unlock-root/">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OpenEnsemble">
+  <meta property="og:title" content="onn. 4K Pro (2024) — Unlock &amp; Root">
+  <meta property="og:description" content="An experimental unlock and permanent-root guide for the earlier jarvis / SNA model. See the exact tested firmware and original evidence.">
+  <meta property="og:url" content="https://openensemble.github.io/onn-4k-pro-unlock-root/">
+  <meta property="og:image" content="https://openensemble.github.io/onn-4k-pro-unlock-root/assets/social-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="onn. 4K Pro 2024 unlock and root guide by OpenEnsemble, with the supported box and remote.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="onn. 4K Pro (2024) — Unlock &amp; Root">
+  <meta name="twitter:description" content="Exact firmware. Recorded results. A guided setup for the earlier onn. 4K Pro.">
+  <meta name="twitter:image" content="https://openensemble.github.io/onn-4k-pro-unlock-root/assets/social-card.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "onn. 4K Pro (2024) Unlock & Root Guide",
+    "description": "Experimental unlock and permanent Magisk root for the earlier onn. 4K Pro (jarvis / SNA), tested on one unit with firmware URO4.260304.011.B1 / 15051976.",
+    "author": {"@type": "Organization", "name": "OpenEnsemble", "url": "https://github.com/openensemble"},
+    "mainEntityOfPage": "https://openensemble.github.io/onn-4k-pro-unlock-root/",
+    "image": "https://openensemble.github.io/onn-4k-pro-unlock-root/assets/social-card.png",
+    "datePublished": "2026-10-21",
+    "dateModified": "2026-10-21",
+    "inLanguage": "en"
+  }
+  </script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="https://github.com/openensemble" aria-label="OpenEnsemble on GitHub">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M9 11h14M9 16h10M9 21h14" stroke="#c7ef79" stroke-width="3" stroke-linecap="round"/></svg>
+        <span>OpenEnsemble<span class="brand-subtitle">DEVICE RESEARCH</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#compatibility">Compatibility</a>
+        <a href="#results">Results</a>
+        <a class="nav-github" href="https://github.com/openensemble/onn-4k-pro-unlock-root">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> ORIGINAL 2024 MODEL · JARVIS / SNA</p>
+        <h1 id="hero-title">Your onn.<br>Your <span class="highlight">control.</span></h1>
+        <p class="hero-product">onn. 4K Pro unlock &amp; root</p>
+        <p class="hero-description">A documented path to AVB unlock and permanent Magisk root for the earlier onn. 4K Pro. Built around exact firmware checks and results you can inspect.</p>
+        <div class="hero-actions">
+          <a class="button button-dark" href="https://github.com/openensemble/onn-4k-pro-unlock-root#readme">Read the guide <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="#compatibility">Check your model <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="hero-note">Experimental · One tested unit · Linux host required</p>
+      </div>
+      <figure class="device-figure">
+        <div class="figure-heading"><span>MEET THE SUPPORTED HARDWARE</span><span class="year-tag">2024</span></div>
+        <img src="assets/onn-4k-pro-2024.png" width="800" height="800" alt="Original 2024 onn. 4K Pro with a fabric-covered top and four front lights, alongside its remote and blue retail box." fetchpriority="high">
+        <figcaption>
+          <div><strong>The original 4K Pro.</strong><span>Fabric top. Four front lights. jarvis / SNA.</span></div>
+          <a href="https://www.walmart.com/ip/5193222892" aria-label="Device photo and product listing at Walmart">Photo: Walmart ↗</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <div class="scope-strip">
+      <div class="container scope-inner">
+        <span class="scope-label">MODEL MATTERS</span>
+        <p><strong>Earlier 2024 onn. 4K Pro only.</strong> The 2023 onn. 4K non-Pro and the new 2026 4K Pro are unsupported.</p>
+        <a href="#faq">Know the difference <span aria-hidden="true">↘</span></a>
+      </div>
+    </div>
+
+    <section class="section container results-section" id="results" aria-labelledby="results-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">01 / THE EVIDENCE</p><h2 id="results-title">Measured on real hardware.</h2></div>
+        <a class="text-link" href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RESULTS.md">Inspect the results <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="results-grid">
+        <article class="result">
+          <div class="result-symbol" aria-hidden="true">1 <span>→</span> 0</div>
+          <h3>AVB unlocked</h3>
+          <p>Recorded lock-state change from locked to unlocked. The unlock persisted through a required factory reset and a later reboot.</p>
+          <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/evidence/unlock-after-reset.json">Unlock evidence <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="result">
+          <div class="result-symbol result-code" aria-hidden="true">uid=0<span>(root)</span></div>
+          <h3>Root after reboot</h3>
+          <p>Magisk 30.7 root verified after a normal reboot, with the thumb drive physically removed and the Magisk environment checked.</p>
+          <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/evidence/root-after-reboot.json">Root evidence <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="result">
+          <div class="result-symbol" aria-hidden="true">01<span class="unit-label"> unit</span></div>
+          <h3>Clearly bounded testing</h3>
+          <p>One device and one firmware configuration. The packaged guide has offline checks; its full workflow has not been tested end to end on hardware.</p>
+          <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RESULTS.md#limits">Read the limits <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+      <p class="section-footnote">Measurements recorded October 21, 2026. Software and test dates do not identify the hardware generation.</p>
+    </section>
+
+    <section class="compatibility-section" id="compatibility" aria-labelledby="compatibility-title">
+      <div class="container compatibility-layout">
+        <div class="compatibility-intro">
+          <p class="eyebrow">02 / CHECK YOUR BOX</p>
+          <h2 id="compatibility-title">Same name.<br>Different hardware.</h2>
+          <p>The “4K Pro” name alone is not enough. This project covers the <strong>original 2024 jarvis / SNA model</strong>, and only the configuration shown here.</p>
+          <p>Check every value before you begin. A match does not guarantee success on another unit. Do not bypass the checks or switch slots to make a device qualify.</p>
+          <a class="text-link" href="https://github.com/openensemble/onn-4k-pro-unlock-root#1-connect-and-check-firmware">How to check your firmware <span aria-hidden="true">↗</span></a>
+          <div class="unsupported-note"><span aria-hidden="true">×</span><p><strong>Unsupported hardware</strong>2023 onn. 4K (non-Pro), new 2026 4K Pro, and all other models.</p></div>
+        </div>
+        <div class="spec-sheet">
+          <div class="spec-heading"><span class="status-dot" aria-hidden="true"></span> ONLY TESTED CONFIGURATION</div>
+          <dl>
+            <div><dt>Device</dt><dd>onn. 4K Pro <span class="spec-tag">2024</span></dd></div>
+            <div><dt>Product identity</dt><dd><code>jarvis / SNA</code></dd></div>
+            <div><dt>Android TV OS</dt><dd>14</dd></div>
+            <div><dt>Build ID</dt><dd><code>URO4.260304.011.B1</code></dd></div>
+            <div><dt>Incremental</dt><dd><code>15051976</code></dd></div>
+            <div><dt>Security patch</dt><dd>March 1, 2026</dd></div>
+            <div><dt>Bootloader</dt><dd><code>01.01.260304.175641</code></dd></div>
+            <div><dt>Active slot</dt><dd><code>_b</code> <span class="spec-secondary">(slot B only)</span></dd></div>
+          </dl>
+          <p class="spec-footnote">URO4 uses the letter <strong>O</strong>, not the number zero.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container start-section" id="get-started" aria-labelledby="start-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">03 / START WITH THE GUIDE</p><h2 id="start-title">A guided setup.<br>An informed decision.</h2></div>
+        <p class="section-summary">The terminal guide explains each stage, checks the device, and asks for a separate confirmation before each risky action.</p>
+      </div>
+      <div class="risk-notice">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 10 18H2L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9v5m0 3v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <p><strong>Unlocking requires a factory reset. Flashing can brick your device.</strong> Back up your data and read the <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RECOVERY.md">recovery and stopping conditions</a> first. Recovery is not guaranteed.</p>
+      </div>
+      <div class="start-layout">
+        <ol class="steps">
+          <li><span class="step-number">01</span><div><h3>Identify your device</h3><p>Match the model, exact firmware, bootloader, and slot B. Start with an unmodified stock boot image.</p></div></li>
+          <li><span class="step-number">02</span><div><h3>Get the essentials ready</h3><p>A Linux x86_64 computer, Python 3.10+, network ADB access, normal device power, and a USB drive with a FAT32 first partition.</p></div></li>
+          <li><span class="step-number">03</span><div><h3>Read, then run the guide</h3><p>The full README covers preparation, the reset, root installation, verification, and when to stop.</p></div></li>
+        </ol>
+        <div class="terminal-wrap">
+          <div class="terminal">
+            <div class="terminal-heading"><span><span class="terminal-dot" aria-hidden="true"></span> LINUX TERMINAL</span><button class="copy-button" type="button" id="copy-commands" hidden>Copy commands</button></div>
+            <pre tabindex="0" aria-label="Commands to download the project and start the guided setup"><code id="setup-commands">git clone https://github.com/openensemble/onn-4k-pro-unlock-root.git
+cd onn-4k-pro-unlock-root
+python3 onn.py</code></pre>
+            <div class="terminal-footer"><span aria-hidden="true">↳</span> Read the full guide before running.</div>
+          </div>
+          <p id="copy-status" class="copy-status" aria-live="polite"></p>
+          <a class="button button-dark guide-button" href="https://github.com/openensemble/onn-4k-pro-unlock-root#guided-setup-recommended">Open the full setup guide <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section" id="faq" aria-labelledby="faq-title">
+      <div class="container faq-layout">
+        <div><p class="eyebrow">04 / BEFORE YOU BEGIN</p><h2 id="faq-title">A few good<br>questions.</h2><p class="faq-intro">Know what this project covers before you change your device.</p></div>
+        <div class="faq-list">
+          <details open><summary>Is this for the 2023 onn. 4K?</summary><div class="faq-answer"><p>No. The 2023 onn. 4K non-Pro is a different device. This guide is for the <strong>original 2024 onn. 4K Pro (jarvis / SNA)</strong>, pictured above. Use the <a href="https://www.walmart.com/ip/5193222892">supported model’s product listing</a> and the firmware checks to identify your box.</p></div></details>
+          <details><summary>Does the new 2026 4K Pro work?</summary><div class="faq-answer"><p>No support is provided for the new 2026 hardware. It is untested. The March 2026 security patch and October 2026 test date on this page refer to software and testing on the earlier model.</p></div></details>
+          <details><summary>Will I lose my apps and settings?</summary><div class="faq-answer"><p>Unlocking required a factory reset on the tested unit, erasing apps, accounts, and settings. Installing permanent root afterward preserved the new setup. Back up anything you need before starting.</p></div></details>
+          <details><summary>Is permanent root actually verified?</summary><div class="faq-answer"><p>Yes, on the single tested unit: root returned after a normal reboot with the thumb drive physically removed. The <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/evidence/root-after-reboot.json">original measurements</a> include the root identity, partition hashes, and Magisk environment checks. This does not establish repeatability on another unit or long-term reliability.</p></div></details>
+          <details><summary>Can I use a different firmware or slot A?</summary><div class="faq-answer"><p>No. Only the exact configuration above with slot <code>_b</code> has been tested. The guide stops on a mismatch. Do not downgrade, switch slots, or bypass checks to force compatibility.</p></div></details>
+          <details><summary>Can I use Windows, macOS, or a shared patched image?</summary><div class="faq-answer"><p>The documented host is Linux x86_64; other host systems are untested. The boot image must be patched on your own target device, following the guide. Do not use another person’s patched image.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="container closing-section" aria-labelledby="closing-title">
+      <div><p class="eyebrow">FOLLOW THE RESEARCH</p><h2 id="closing-title">The details live on GitHub.</h2><p>Read the source, inspect the evidence, or report what you find.<br>If this work is useful, a star helps others find it.</p></div>
+      <a class="button button-dark" href="https://github.com/openensemble/onn-4k-pro-unlock-root"><svg class="github-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.32-3.79-1.32-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.62 1.22 3.26.93.1-.72.39-1.22.71-1.5-2.5-.28-5.12-1.25-5.12-5.57 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.14-1.45 3.08-1.15 3.08-1.15.62 1.55.23 2.7.12 2.98.72.79 1.15 1.79 1.15 3.02 0 4.33-2.62 5.29-5.13 5.57.4.35.76 1.04.76 2.1v3.07c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/></svg>View project on GitHub <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner"><div><strong>OpenEnsemble</strong><p>Independent device research. Not affiliated with Walmart, onn., Google, or Magisk.<br>Product photo and trademarks belong to their respective owners.</p></div><div class="footer-links"><a href="https://github.com/openensemble/onn-4k-pro-unlock-root/issues">Report an issue ↗</a><a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/THIRD_PARTY.md">Credits &amp; provenance ↗</a></div></div>
+  </footer>
+</body>
+</html>

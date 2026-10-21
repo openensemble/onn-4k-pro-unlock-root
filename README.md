@@ -1,5 +1,7 @@
 # Earlier onn. 4K Pro (jarvis / SNA) — unlock and permanent root
 
+[**Project website — compatibility, measured results, and setup overview**](https://openensemble.github.io/onn-4k-pro-unlock-root/)
+
 <p align="center">
   <img src="assets/images/onn-4k-pro-2024.png" width="460" alt="Earlier Onn 4K Pro with fabric-covered top, four front lights, remote, and blue retail box">
 </p>
@@ -33,7 +35,7 @@ URO4 contains the letter **O**. Exact fingerprint:
 
 **Verified on our unit:** the AVB unlock survived a factory reset and normal reboot; Magisk root then survived another reboot with the thumb drive physically removed. Unlocking **required a factory reset**. Installing permanent root afterward preserved its new setup. See [recorded results](docs/RESULTS.md).
 
-**Package status:** the original payloads and installation method worked on that one unit. The portable command wrapper has been checked offline; the complete packaged workflow has **not** been run end to end on the original box or another device. The same firmware string does not guarantee another unit will work. This remains a private experimental guide.
+**Package status:** the original payloads and installation method worked on that one unit. The portable command wrapper has been checked offline; the complete packaged workflow has **not** been run end to end on the original box or another device. The same firmware string does not guarantee another unit will work. This remains an experimental guide.
 
 ## Before starting
 

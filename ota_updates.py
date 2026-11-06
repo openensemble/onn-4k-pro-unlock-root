@@ -5,7 +5,7 @@ import shlex
 import tarfile
 import uuid
 
-from onnlib import ROOT, PROFILE, digest, now, read, require, save
+from onnlib import ROOT, PROFILE, NEW_PROFILE, digest, now, read, require, save
 from root_install import root_identity, saved_install
 
 MODULE = '/data/adb/modules/onn_ota_pause'
@@ -63,6 +63,16 @@ def snapshot(device, require_idle=False):
 
 
 def check_device(device, run):
+    if device.config.get('firmware_mode') == 'updated-16202347':
+        proof = read(run / 'firmware-update-proof.json')
+        require(proof.get('verified') and proof['device_binding'] == device.binding()
+                and proof['fingerprint'] == NEW_PROFILE['fingerprint'], 'Missing bound firmware-update proof')
+        device.preflight('unlocked')
+        root_identity(device)
+        require(device.root('/debug_ramdisk/magisk -V').stdout.strip() == '30700', 'Unexpected Magisk version')
+        require(device.root('sha256sum /dev/block/by-name/boot_a', timeout=90).stdout.split()[0]
+                == NEW_PROFILE['expected_patched_sha256'], 'Updated boot image changed')
+        return proof['device_binding']
     require(read(run / 'permanent-root-proof.json').get('permanent_root_proven') is True,
             'Verify permanent root before changing update settings')
     device.preflight('unlocked')
@@ -90,10 +100,11 @@ def saved_receipt(device, run, binding):
     return receipt
 
 
-def restore_script(before, owner):
+def restore_script(before, owner, profile=None):
+    profile = PROFILE if profile is None else profile
     # All shell targets are fixed; only validated state numbers select commands.
     commands = ['#!/system/bin/sh', 'set -eu',
-                '[ "$(/system/bin/getprop ro.build.fingerprint)" = ' + shlex.quote(PROFILE['fingerprint']) + ' ]',
+                '[ "$(/system/bin/getprop ro.build.fingerprint)" = ' + shlex.quote(profile['fingerprint']) + ' ]',
                 (ROOT / 'tools/ota-common.sh').read_text(),
                 f'if [ -e {MODULE} ]; then',
                 f'  [ "$(cat {MODULE}/owner)" = {shlex.quote(owner)} ]',
@@ -141,6 +152,7 @@ def verify_paused(device, receipt):
 
 def disable(device, run):
     binding = check_device(device, run)
+    profile = getattr(device, 'profile', PROFILE)
     directory = run / 'updates'
     require(not directory.exists(), 'An update-settings attempt exists. Use updates-status or ' + RESTORE)
     device.root(f'test ! -e {MODULE}')
@@ -157,9 +169,9 @@ def disable(device, run):
     (module / 'skip_mount').touch()
     (module / 'components.txt').write_text('\n'.join(COMPONENTS) + '\n')
     (module / 'common.sh').write_text((ROOT / 'tools/ota-common.sh').read_text())
-    (module / 'pause.sh').write_text((ROOT / 'tools/ota-pause.sh.in').read_text().replace('@FINGERPRINT@', PROFILE['fingerprint']))
+    (module / 'pause.sh').write_text((ROOT / 'tools/ota-pause.sh.in').read_text().replace('@FINGERPRINT@', profile['fingerprint']))
     (module / 'service.sh').write_text((ROOT / 'tools/ota-service.sh').read_text())
-    (module / 'restore-state.sh').write_text(restore_script(before, owner))
+    (module / 'restore-state.sh').write_text(restore_script(before, owner, profile))
     files = {path.name: digest(path) for path in sorted(module.iterdir())}
     (module / 'SHA256SUMS').write_text(''.join(value + '  ' + name + '\n' for name, value in files.items()))
     (module / 'disable').touch()  # No boot-time action before installation is complete.
@@ -210,7 +222,8 @@ def restore(device, run):
     # changes still need restoration. Never replace an unrelated module.
     receipt['status'] = 'restoring'
     save(run / 'updates/receipt.json', receipt)
-    result = device.root(restore_script(receipt['before'], receipt['owner']), timeout=120, check=False)
+    result = device.root(restore_script(receipt['before'], receipt['owner'],
+                                      getattr(device, 'profile', PROFILE)), timeout=120, check=False)
     (run / 'updates/restore.log').write_text(result.stdout + result.stderr)
     require(result.returncode == 0 and 'UPDATE_SETTINGS_RESTORED' in result.stdout,
             'Restoration incomplete; inspect updates/restore.log and preserve the backup')

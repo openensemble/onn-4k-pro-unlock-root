@@ -10,15 +10,15 @@ from types import SimpleNamespace
 
 import discovery
 import onn
-from onnlib import (ROOT, WORK, PROFILE, Device, configuration, digest, latest_session,
-                    now, read, require, save, sessions, target_value)
+from onnlib import (ROOT, WORK, PROFILE, NEW_PROFILE, Device, configuration, digest, latest_session,
+                    now, read, require, save, sessions, target_value, run_profile)
 
 INTRO = '''
 onn. 4K Pro guided unlock and root
 
 Earlier jarvis / SNA hardware only. The new 2026 model is NOT supported.
 Only build URO4.260304.011.B1 / 15051976, bootloader 01.01.260304.175641,
-March 2026 security patch, and active slot _b have been tested, on ONE unit.
+March 2026 security patch, and active slot _b are the original unlock/root profile, tested on ONE unit.
 The complete packaged workflow has not been tested end to end on hardware.
 
 Unlocking will enter recovery and require a factory reset. This erases apps,
@@ -111,12 +111,13 @@ def choose_drives(loader, title, expected_uuid=None, minimum_free=False):
             print('Choose one of the listed numbers.')
 
 
-def select_box(adb, expected_identity=None, require_locked=False):
-    boxes = discovery.discover_boxes(adb)
+def select_box(adb, expected_identity=None, require_locked=False, profile=None):
+    options = {'profile': profile} if profile is not None else {}
+    boxes = discovery.discover_boxes(adb, **options)
     if not any(box['eligible'] and (not expected_identity or box.get('identity') == expected_identity)
                and (not require_locked or box['properties'].get('ro.boot.flash.locked') == '1')
                for box in boxes):
-        boxes = discovery.discover_boxes(adb, scan=True)
+        boxes = discovery.discover_boxes(adb, scan=True, **options)
     while True:
         print('\nAvailable network ADB devices')
         for index, box in enumerate(boxes, 1):
@@ -126,7 +127,7 @@ def select_box(adb, expected_identity=None, require_locked=False):
             print('  None found. Check power, the shared network, and debugging authorization.')
         answer = ask('Select a device number, r to refresh, s to search LAN, a for an address, or q: ')
         if answer.lower() in ('r', 's'):
-            boxes = discovery.discover_boxes(adb, scan=answer.lower() == 's')
+            boxes = discovery.discover_boxes(adb, scan=answer.lower() == 's', **options)
             continue
         if answer.lower() == 'a':
             raw = ask('Onn 4K Pro IPv4 address (optional :port; default 5555): ')
@@ -135,14 +136,14 @@ def select_box(adb, expected_identity=None, require_locked=False):
                 discovery.command([adb, 'connect', target], timeout=8)
             except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
                 print(discovery.readable(error))
-            boxes = discovery.discover_boxes(adb)
+            boxes = discovery.discover_boxes(adb, **options)
             continue
         if not answer.isdecimal() or not 1 <= int(answer) <= len(boxes):
             print('Choose one of the listed numbers.')
             continue
         box = boxes[int(answer) - 1]
         # Refresh identity and firmware at selection, not only at initial scan.
-        box = discovery.inspect_box(adb, box['target'], box['state'])
+        box = discovery.inspect_box(adb, box['target'], box['state'], **options)
         if not box['eligible']:
             print('Cannot use this device: ' + box['reason'])
             continue
@@ -160,8 +161,9 @@ def kit_result(run, kind):
     return read(session / 'roundtrip.json'), read(session / 'capture-validation.json')
 
 
-def next_after_interruption(run, action):
+def next_after_interruption(run, action, profile=None):
     """Only receipts, never a timeout or a menu answer, permit moving forward."""
+    profile = PROFILE if profile is None else profile
     if action == 'unlock':
         require(len(sessions(run / 'unlock')) == 1,
                 'Unlock was started but there is no unique session. Stop; do not retry the writer.')
@@ -176,7 +178,7 @@ def next_after_interruption(run, action):
     if action == 'patch':
         patch = read(run / 'patch.json')
         require(patch.get('patched_on_this_device') and patch.get('tested_payload_match')
-                and digest(run / 'patched-boot.img') == PROFILE['expected_patched_sha256'],
+                and digest(run / 'patched-boot.img') == profile['expected_patched_sha256'],
                 'Patch is incomplete. Preserve the files; do not overwrite them or substitute an image.')
         return 'root-test'
     if action == 'root-test':
@@ -196,7 +198,7 @@ def next_after_interruption(run, action):
     if action in ('disable-updates', 'updates-status'):
         # Never replay a partially applied update change or replace its backup.
         return 'updates-check' if (run / 'updates/receipt.json').exists() else 'updates'
-    require(action in ('prepare-usb', 'collect-unlock', 'restore-startup', 'verify-unlock', 'root-proof'),
+    require(action in ('prepare-usb', 'collect-unlock', 'restore-startup', 'verify-unlock', 'root-proof', 'experimental-root'),
             'Unknown interrupted action; inspect the saved run.')
     return None  # These existing guarded commands can be resumed without another boot/write.
 
@@ -240,6 +242,9 @@ class Guide:
     def __init__(self, config, run, state, lock_fd=None):
         self.config, self.run, self.state = config, run, state
         self.adb = run / 'root/tools/adb'
+        self.experimental = config.get('firmware_mode') == 'experimental-unlock-16202347'
+        self.profile = run_profile(config)
+        self.profile_options = {'profile': {**NEW_PROFILE, 'active_slot': config['active_slot']}} if self.experimental else {}
         # The child retains this lock if the terminal/guide exits unexpectedly.
         # A second guide cannot collect USB or resume while that action runs.
         self.lock_fd = lock_fd
@@ -252,17 +257,21 @@ class Guide:
         if not rediscover:
             try:
                 discovery.command([self.adb, 'connect', self.config['target']], timeout=8)
-                box = discovery.inspect_box(self.adb, self.config['target'])
+                box = discovery.inspect_box(self.adb, self.config['target'], **self.profile_options)
             except (OSError, RuntimeError, subprocess.SubprocessError):
                 pass
         if not box or not box['eligible'] or box.get('identity') != self.state['device_identity']:
             print('Reconnect and authorize the same physical Onn 4K Pro. The IP may have changed after reset.')
-            box = select_box(self.adb, expected_identity=self.state['device_identity'])
+            box = select_box(self.adb, expected_identity=self.state['device_identity'], **self.profile_options)
         if box['target'] != self.config['target']:
             onn.set_target(SimpleNamespace(target=box['target']), self.config, self.run)
         return Device(self.config, self.run)
 
     def action(self, arguments, next_stage=None, offline=False):
+        arguments = list(arguments)
+        if self.experimental and (arguments[0] in ('root-test','install-root','restore-stock') or
+                                  (arguments[0] == 'verify-root' and '--reboot' in arguments)):
+            arguments += ['--accept-untested-brick-risk', '--accept-sole-responsibility']
         if not offline:
             self.connection()
         if arguments[0] in ('read-state', 'unlock', 'root-test'):
@@ -282,7 +291,7 @@ class Guide:
             # An interrupted unlock goes to offline result collection, never a
             # retry. A root prompt can be missed after a successful USB boot.
             if arguments[0] in ('unlock', 'root-test'):
-                next_stage = next_after_interruption(self.run, arguments[0])
+                next_stage = next_after_interruption(self.run, arguments[0], self.profile)
                 print('Continuing with result verification; the device action will not be repeated.')
             else:
                 raise RuntimeError('Step stopped. Saved output: ' + str(log))
@@ -293,7 +302,7 @@ class Guide:
 
     def resume_pending(self):
         if self.state.get('pending'):
-            stage = next_after_interruption(self.run, self.state['pending'])
+            stage = next_after_interruption(self.run, self.state['pending'], self.profile)
             if stage:
                 self.state['stage'] = stage
             self.state.pop('pending')
@@ -313,7 +322,10 @@ class Guide:
 
     def execute(self):
         self.resume_pending()
-        if self.state['stage'] == 'complete' and 'updates_choice' not in self.state:
+        if self.experimental and self.state['stage'] == 'complete' and 'root_choice' not in self.state:
+            self.state['stage'] = 'root-choice'
+            self.persist()
+        if self.state['stage'] == 'complete' and 'updates_choice' not in self.state and not self.experimental:
             # Offer the new option once when resuming an older completed guide.
             self.state['stage'] = 'updates'
             self.persist()
@@ -329,14 +341,24 @@ class Guide:
                 confirm('The next step temporarily changes startup and reboots once to read the secure\n'
                         'lock state. It does not request an unlock, but experimental boot code can\n'
                         'brick the device. Keep the thumb drive in the Onn 4K Pro and power connected.', 'READ STATE')
-                self.action(['read-state', '--accept-risk'], 'unlock')
+                if self.experimental:
+                    confirm(EXPERIMENTAL_WARNING, 'I ACCEPT SOLE RESPONSIBILITY')
+                flags = ['--accept-untested-brick-risk', '--accept-sole-responsibility'] if self.experimental else []
+                self.action(['read-state', '--accept-risk', *flags], 'unlock')
             elif stage == 'unlock':
+                if self.experimental:
+                    confirm(EXPERIMENTAL_WARNING, 'I ACCEPT SOLE RESPONSIBILITY FOR BRICKING')
+                recovery_expectation = ('The original firmware required recovery and a factory reset; this new firmware\n'
+                                        'has NOT been tested. Recovery may fail. Expect the loss of\n'
+                                        if self.experimental else
+                                        'The Onn 4K Pro will enter recovery and require a factory reset. This erases\n')
                 confirm('The next step WRITES the secure AVB lock state and reboots once.\n'
-                        'The Onn 4K Pro will enter recovery and require a factory reset. This erases\n'
+                        + recovery_expectation +
                         'apps, accounts, and settings. The unlock can also brick the box.\n'
                         'Keep the thumb drive connected until the recovery screen appears.\n'
                         'The guide will pause for the reset and setup. Do not rerun unlock.', 'ERASE AND UNLOCK')
-                self.action(['unlock', '--accept-data-loss'], 'collect')
+                flags = ['--accept-untested-brick-risk', '--accept-sole-responsibility'] if self.experimental else []
+                self.action(['unlock', '--accept-data-loss', *flags], 'collect')
             elif stage == 'collect':
                 confirm('Wait for the Onn 4K Pro to show the recovery message:\n'
                         '"Can\'t load Android system. Your data may be corrupt".\n'
@@ -369,16 +391,36 @@ class Guide:
                         'Then accept the debugging authorization on the Onn 4K Pro when prompted.', 'ANDROID READY')
                 self.connection(rediscover=True)
                 self.action(['restore-startup', '--kit', 'unlock'])
-                self.action(['verify-unlock'], 'patch')
+                self.action(['verify-unlock'], 'root-choice' if self.experimental else 'patch')
+            elif stage == 'root-choice':
+                require(self.experimental, 'Optional experimental root belongs only to the new-firmware workflow')
+                from experimental_root import WARNING, unlocked_run
+                unlocked_run(self.connection(), self.run)
+                print('Experimental unlock has been verified on this device. Root is optional.\n' + WARNING)
+                answer = ask('Also try EXPERIMENTAL root on this unlocked device? (y/n, or q): ').lower()
+                if answer in ('y', 'yes'):
+                    confirm(WARNING, 'I ACCEPT SOLE RESPONSIBILITY FOR EXPERIMENTAL ROOT')
+                    self.state['root_choice'] = 'accepted'
+                    self.persist()
+                    self.action(['experimental-root', '--accept-untested-brick-risk', '--accept-sole-responsibility'], 'patch')
+                elif answer in ('n', 'no'):
+                    self.state.update(root_choice='declined', stage='complete')
+                    self.persist()
+                    print('Root skipped. The verified unlock is retained; no root boot or flash requested.')
+                else:
+                    print('Enter y or n. No root action has been started.')
             elif stage == 'patch':
                 print('Safely eject the thumb drive from the computer and put it back in the Onn 4K Pro.\n'
                       'Use the same volume. Do not clear the earlier captures or prepare the thumb drive again.')
                 self.drive_on_tv()
                 confirm('Patch the stock image on this Onn 4K Pro using the included official Magisk tools.\n'
                         'This installs the Magisk manager but writes no firmware partition.\n'
-                        'Do not use Magisk Direct Install; this build requires boot_b, not init_boot.')
+                        'Do not use Magisk Direct Install; this profile uses boot' + self.profile['active_slot'] + ', not init_boot.')
                 self.action(['patch'], 'root-test')
             elif stage == 'root-test':
+                if self.experimental:
+                    from experimental_root import WARNING
+                    print(WARNING)
                 confirm('Reboot once through the one-use USB Magisk image. Experimental boot code\n'
                         'can brick the box. Leave the thumb drive connected and choose Grant for Shell if the\n'
                         'Onn 4K Pro shows a Superuser prompt. Do not reboot again before installation.', 'TEST ROOT')
@@ -388,10 +430,14 @@ class Guide:
                         'This checks root in the same temporary boot without another reboot.')
                 self.action(['root-proof'], 'install')
             elif stage == 'install':
-                confirm('The installer will back up boot_b, check the images and temporary root,\n'
+                if self.experimental:
+                    from experimental_root import WARNING
+                    print(WARNING)
+                target = 'boot' + self.profile['active_slot']
+                confirm('The installer will back up ' + target + ', check the images and temporary root,\n'
                         'then WRITE INTERNAL FLASH once and verify its readback. Power loss or a\n'
                         'failed write can brick the box. Removing the thumb drive cannot undo this write.\n'
-                        'Keep power connected. This command will not reboot automatically.', 'WRITE BOOT_B')
+                        'Keep power connected. This command will not reboot automatically.', 'WRITE ' + target.upper())
                 self.action(['install-root', '--accept-risk'], 'verify')
             elif stage in ('verify', 'verify-check'):
                 confirm('Physically remove the thumb drive from the Onn 4K Pro. Permanent root must work without it.\n'
@@ -436,6 +482,12 @@ class Guide:
                 self.persist()
             else:
                 raise RuntimeError('Unknown saved step; preserve wizard.json and inspect the run.')
+        if self.experimental and self.state.get('root_choice') != 'accepted':
+            proof = read(self.run / 'unlocked-proof.json')
+            require(proof['properties'].get('ro.boot.flash.locked') == '0', 'Missing unlock verification')
+            print('This device reports unlocked after the experimental attempt. Keep every receipt: ' + str(self.run))
+            print('Optional experimental root was skipped. Do not use an old firmware boot image on 16202347.')
+            return
         proof = read(self.run / 'permanent-root-proof.json')
         require(proof.get('permanent_root_proven') is True, 'The final root proof is missing.')
         print('\nPermanent root was verified: ' + proof['completed_at'])
@@ -445,7 +497,9 @@ class Guide:
             print('Restore the previous settings: python3 onn.py restore-updates --apply')
         elif self.state.get('updates_choice') == 'unchanged':
             print('Automatic firmware update settings were left unchanged.')
-        print('Keep the bootloader unlocked. Firmware updates and other firmware remain untested.')
+        print('Keep the bootloader unlocked. The separate update-firmware workflow covers 15051976 B -> 16202347 A; verified on one device.')
+        if self.experimental:
+            print('This local result does not remove the published experimental warning or validate other devices.')
 
 
 def recovery_message(run, state):
@@ -489,6 +543,7 @@ def show_status():
         'unlock': 'Unlock the Onn 4K Pro',
         'collect': 'Collect the unlock result',
         'reconnect': 'Finish Android setup and reconnect',
+        'root-choice': 'Choose optional experimental root after verified unlock',
         'patch': 'Create the Magisk image',
         'root-test': 'Test temporary root',
         'root-proof': 'Verify temporary root',
@@ -505,10 +560,11 @@ def show_status():
         print('Saved action awaiting verification: ' + discovery.readable(state['pending']))
         print('Its result has not been resolved by the guide. Do not repeat the action.')
     elif state['stage'] == 'complete':
-        proof_path = run / 'permanent-root-proof.json'
+        experimental = config.get('firmware_mode') == 'experimental-unlock-16202347' and state.get('root_choice') != 'accepted'
+        proof_path = run / ('unlocked-proof.json' if experimental else 'permanent-root-proof.json')
         proof = read(proof_path) if proof_path.exists() else {}
-        require(proof.get('permanent_root_proven') is True, 'The final root proof is missing.')
-        print('Permanent root verified: ' + discovery.readable(proof.get('completed_at', '')))
+        require(proof.get('properties', {}).get('ro.boot.flash.locked') == '0' if experimental else proof.get('permanent_root_proven') is True, 'The final unlock proof is missing.' if experimental else 'The final root proof is missing.')
+        print('Experimental unlock verified for this run.' if experimental else 'Permanent root verified: ' + discovery.readable(proof.get('completed_at', '')))
     if state.get('updates_choice'):
         print('Firmware update choice: ' + discovery.readable(state['updates_choice']))
     if (run / 'updates/receipt.json').exists():
@@ -530,9 +586,13 @@ def start(args):
     if getattr(args, 'status', False):
         show_status()
         return
-    print(INTRO)
+    experimental = getattr(args, 'experimental_16202347', False)
+    print(EXPERIMENTAL_INTRO if experimental else INTRO)
     if getattr(args, 'preview', False):
-        print(STEPS)
+        print(STEPS.split('6. Move')[0] + '6. After verified unlock, choose y/n for OPTIONAL EXPERIMENTAL ROOT.\n'
+              '7. If accepted: target-device patch, one USB root test, explicit active-slot install,\n'
+              '   then verify root after a normal boot without USB. All fresh-root steps are untested.\n'
+              if experimental else STEPS)
         print('Preview only. No ADB, network scan, or device commands were run.')
         return
     require(sys.version_info >= (3, 10), 'Python 3.10 or later is required.')
@@ -540,8 +600,9 @@ def start(args):
             'The guided workflow supports Linux x86_64 only.')
     import fcntl
     adb = ROOT / 'tools/linux/adb'
+    options = {'profile': {**NEW_PROFILE, 'active_slot': None}} if experimental else {}
     if getattr(args, 'discover_only', False):
-        for box in discovery.discover_boxes(adb, scan=True):
+        for box in discovery.discover_boxes(adb, scan=True, **options):
             print(box['target'], discovery.readable(box['model']), box['reason'])
             if box['eligible']:
                 for drive in discovery.discover_tv_drives(adb, box['target']):
@@ -560,16 +621,27 @@ def start(args):
         try:
             if (WORK / 'current.json').exists():
                 config, run = configuration()
+                if config.get('firmware_mode') == 'updated-16202347':
+                    require(read(run / 'firmware-update-proof.json').get('verified') is True,
+                            'Missing verified update receipt; use update-firmware --status/--verify')
+                    print('This saved device was updated to 16202347. The original unlock/root run is archived.\n'
+                          'Check its update: python3 onn.py update-firmware --status\n'
+                          'Check OTA settings: python3 onn.py updates-status\n'
+                          'Restore prior settings: python3 onn.py restore-updates --apply')
+                    return
                 require((run / 'wizard.json').exists(),
                         'An existing manual run was found. Preserve it and its receipts; the guide will not replace or restart it.')
                 state = read(run / 'wizard.json')
+                require(not experimental or config.get('firmware_mode') == 'experimental-unlock-16202347', 'A different workflow is saved; preserve it and use a separate checkout for a different device.')
                 require(state.get('version') == 1 and state.get('run_id') == config['run_id'], 'Unexpected saved guide state.')
                 guide = Guide(config, run, state, lock.fileno())
                 print('Resuming the saved run: ' + str(run))
             else:
                 require(shutil.disk_usage(ROOT).free >= 1024 ** 3, 'Free at least 1 GiB on this computer.')
                 confirm('Connect only your own Onn 4K Pro on your trusted network. Continue to discovery.')
-                box = select_box(adb, require_locked=True)
+                if experimental:
+                    confirm(EXPERIMENTAL_WARNING, 'I ACCEPT SOLE RESPONSIBILITY')
+                box = select_box(adb, require_locked=True, **options)
                 usage = discovery.parse_df(discovery.command([adb, '-s', box['target'], 'shell', 'df -k /data']))
                 require(usage['free'] >= 1024 ** 3, 'Free at least 1 GiB on the Onn 4K Pro.')
                 drive = choose_drives(lambda: discovery.discover_tv_drives(adb, box['target']),
@@ -577,7 +649,7 @@ def start(args):
                 confirm('Android identifies a FAT volume but cannot prove FAT32 before root.\n'
                         'Confirm that you prepared this drive as FAT32 and backed it up.\n'
                         'The guide will not format it.', 'FAT32')
-                onn.setup(SimpleNamespace(target=box['target'], usb_uuid=drive['uuid'], adb=None, new_run=False))
+                onn.setup(SimpleNamespace(target=box['target'], usb_uuid=drive['uuid'], adb=None, new_run=False, experimental_16202347=experimental, slot=box['properties']['ro.boot.slot_suffix'][-1], accept_untested_brick_risk=experimental, accept_sole_responsibility=experimental))
                 config, run = configuration()
                 state = {'version': 1, 'run_id': config['run_id'], 'device_identity': box['identity'],
                          'stage': 'prepare', 'created_at': now(), 'history': []}
@@ -592,3 +664,43 @@ def start(args):
             if guide:
                 recovery_message(guide.run, guide.state)
             raise
+
+
+EXPERIMENTAL_WARNING = """EXPERIMENTAL UNLOCK — BUILD 16202347 — NOT HARDWARE TESTED.
+The successful firmware upgrade was verified on ONE already-unlocked device.
+That does not test unlocking a locked device on this firmware.
+This attempt can erase your apps, accounts and settings, cause a boot loop,
+or PERMANENTLY BRICK your device. Recovery is not guaranteed.
+You are solely responsible for choosing to take this risk and for all resulting
+loss, damage, costs or loss of use. Do not proceed unless you accept losing the device.
+After verified unlock, an optional root choice has its own experimental warning.
+The project authors do not take responsibility for resulting damage or data loss.
+"""
+
+EXPERIMENTAL_INTRO = EXPERIMENTAL_WARNING + """
+Earlier 2024 jarvis / SNA hardware only; the new 2026 model remains unsupported.
+Exact fingerprint: onn/jarvis/SNA:14/URO4.260304.092/16202347:user/release-keys
+Bootloader 01.01.260304.175641, September 2026 patch, Android 14.
+The guide binds to your existing slot A or B. Neither fresh-unlock case is tested.
+Linux x86_64, Python 3.10+, network ADB and a FAT32 first-partition thumb drive
+are required. Back up your data and read docs/EXPERIMENTAL_UNLOCK.md first.
+Enable USB debugging and approve this computer on your own device.
+Type q at a prompt to leave. Keep work/ and USB captures to resume safely.
+"""
+
+
+def choose_workflow():
+    try:
+        print('2024 onn. 4K Pro (jarvis / SNA) — choose a workflow')
+        print('1. Original 15051976 unlock/root guide, or resume the saved guide')
+        print('2. Update rooted 15051976 slot B to 16202347 slot A — verified on ONE device')
+        print('3. EXPERIMENTAL unlock + optional root on 16202347 — UNTESTED; can permanently brick the device')
+        choice = ask('Choose 1, 2, 3, or q: ')
+        require(choice in ('1', '2', '3'), 'Choose a listed workflow')
+        if choice == '2':
+            from firmware_update import guide
+            guide()
+        else:
+            start(SimpleNamespace(experimental_16202347=choice == '3'))
+    except Paused:
+        print('Exited. Saved receipts are preserved.')

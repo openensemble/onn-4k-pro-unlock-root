@@ -1,7 +1,9 @@
 {
   "model": "onn. Streaming Device 4K Pro",
   "hardware_generation": "Earlier model (pre-2026 hardware), jarvis / SNA",
-  "excluded_models": ["onn. 4K Pro (new 2026 hardware model)"],
+  "excluded_models": [
+    "onn. 4K Pro (new 2026 hardware model)"
+  ],
   "model_2026_supported": false,
   "model_2026_tested": false,
   "product": "jarvis / SNA",
@@ -15,7 +17,7 @@
   "first_api_level": "31",
   "abi": "armeabi-v7a",
   "tested_units": 1,
-  "other_firmware_tested": false,
+  "other_firmware_tested": true,
   "stock_boot_size": 100663296,
   "stock_boot_sha256": "5c5a874dd2e3e5b2ad87903a3d53a6f8b3ebcebe2ad64a28fd837d1a07ceaad8",
   "stock_boot_gzip_sha256": "5d43cc621595e9b4bc3a74ec8fed2f8a143f2633676b2ef9ffeec1fc31d2faef",
@@ -33,5 +35,6 @@
   "boot_target": "/dev/block/by-name/boot_b",
   "boot_device": "/dev/block/mmcblk0p21",
   "stock_startup": "run storeboot_base;",
-  "patch_policy": "Patch on the target device and require the exact tested output hash; stop if it differs. No shared patched image is included."
+  "patch_policy": "Patch on the target device and require the exact tested output hash; stop if it differs. No shared patched image is included.",
+  "other_firmware_test_scope": "A later 15051976/B to 16202347/A update retained root and setup on the same one device. Fresh unlock on 16202347 remains untested."
 }

@@ -12,9 +12,9 @@
 
 > **WARNING: This process can erase all user data, cause boot loops, or permanently brick your device. Recovery is not guaranteed. Back up your data first and proceed only if you accept losing the device.**
 >
-> **Tested on ONE earlier-generation onn. Streaming Device 4K Pro, with ONLY the firmware below. No other firmware, bootloader version, model, or active slot has been tested. Do not bypass the checks.**
+> **Evidence comes from ONE 2024 onn. 4K Pro. The original 15051976 unlock/root and a later upgrade to 16202347 were verified on that same device. Fresh unlocking and first-time root on 16202347 have NOT been hardware tested and can permanently brick a device. Do not bypass the checks.**
 
-| Item | Only tested configuration |
+| Item | Original unlock/root configuration |
 | --- | --- |
 | Model | Earlier onn. Streaming Device 4K Pro (jarvis / SNA) |
 | Excluded hardware | New 2026 onn. 4K Pro — unsupported and untested |
@@ -37,7 +37,21 @@ URO4 contains the letter **O**. Exact fingerprint:
 
 **Package status:** the original payloads and installation method worked on that one unit. The portable command wrapper has been checked offline; the complete packaged workflow has **not** been run end to end on the original box or another device. The same firmware string does not guarantee another unit will work. This remains an experimental guide.
 
-## Before starting
+## Choose the correct workflow
+
+| Workflow | Firmware and starting state | Evidence and risk |
+| --- | --- | --- |
+| Original unlock and root | **15051976**, stock, locked, slot B | Unlock/reset/root verified on **one device**. Packaged guide checked offline. |
+| [Update while keeping root and setup](docs/FIRMWARE_UPDATE.md) | Already unlocked and Magisk 30.7 rooted **15051976 / B → 16202347 / A** | Underlying upgrade **tested and verified on one device** on November 6, 2026. Apps/settings and root retained; no reset. Packaged updater checked offline, not yet hardware-tested end to end. |
+| [Experimental unlock and optional root](docs/EXPERIMENTAL_UNLOCK.md) | Already on **16202347**, locked, existing slot A or B | **NOT HARDWARE TESTED. Can erase data or permanently brick the device. Recovery is not guaranteed. The owner is solely responsible for choosing to take the risk and all resulting loss or damage.** |
+
+**16202347 is the newest reviewed firmware in this package**, Android 14 / September 1, 2026 patch. The updater pins its exact official OTA and checksums; it does not fetch and flash an unknown future “latest” release. A successful upgrade of an already-unlocked box does **not** prove a fresh unlock or first-time root on that firmware.
+
+Run `python3 onn.py` to choose a workflow. The update guide reports download and backup progress, on-device patching, installation/verification percentages, reboot/reconnection waits, and snapshot merge. Private backups and detailed logs stay in ignored `work/`.
+
+The experimental choice has separate helper APKs and explicit risk/responsibility confirmations. **Only after successful unlock verification**, it asks whether to attempt optional **experimental root**. Choosing no ends with unlock only. Choosing yes requires a separate acknowledgment, creates the new firmware's boot image on that device, tests root from USB, then asks before flashing the existing active boot slot. **Fresh unlock and first-time root on 16202347 are both untested and can permanently brick the device. The owner is solely responsible for the risk and resulting loss or damage; the project authors take no responsibility for it.** Read the [experimental guide](docs/EXPERIMENTAL_UNLOCK.md) first.
+
+## Before starting the original 15051976 workflow
 
 You need a Linux x86_64 computer with Python 3.10+, ADB access to your own box, its normal power supply, and a USB thumb drive with a FAT32 first partition. Keep at least 1 GB free on both computer and device. These commands create folders; they do not format the drive, but back it up if it contains anything you’ll need.
 
@@ -54,6 +68,8 @@ Included inputs: three diagnostic APKs and source, native payloads and assembly,
 After cloning run this command:
 
     python3 onn.py
+
+Choose **1** for the original workflow, **2** for the reviewed firmware update, or **3** for experimental unlock with optional experimental root. The remaining original-workflow instructions below apply to choice 1.
 
 The terminal guide includes the instructions at each step. It finds network ADB
 devices, checks the exact firmware, and lets you select the Onn 4K Pro by number.
@@ -101,8 +117,7 @@ For discovery only (network ADB and Onn 4K Pro storage inspection; no setup or r
 
 ## Manual commands
 
-The remaining sections document the individual commands used by the guide and
-are available for manual operation and troubleshooting.
+The remaining sections document the **original 15051976 unlock/root commands**. For the new paths use [firmware update commands](docs/FIRMWARE_UPDATE.md) or [experimental unlock commands](docs/EXPERIMENTAL_UNLOCK.md).
 
 ### 1. Connect and check firmware
 
@@ -257,6 +272,10 @@ Keep the saved `work/` folder for restoration. Removing the module in Magisk alo
 Firmware updates can replace the rooted boot image; [Magisk recommends disabling automatic system updates](https://topjohnwu.github.io/Magisk/ota.html). This option helps preserve root but does not guarantee that root or the unlocked bootloader can never change. Automatic relocking by an Onn update has not been demonstrated. The boot script and portable commands are checked offline; their behavior across reboot has not yet been validated on hardware.
 
 ## Reference
+
+- [Update to 16202347 while preserving root and setup](docs/FIRMWARE_UPDATE.md)
+- [Experimental, untested unlock on 16202347](docs/EXPERIMENTAL_UNLOCK.md)
+- [Single-device upgrade evidence](evidence/update-16202347.json)
 
 - [Recovery](docs/RECOVERY.md)
 - [How it works](docs/HOW_IT_WORKS.md)

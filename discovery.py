@@ -48,7 +48,7 @@ def device_identity(properties):
     return hashlib.sha256(serial.encode()).hexdigest()
 
 
-def inspect_box(adb, target, state='device'):
+def inspect_box(adb, target, state='device', profile=None):
     result = {'target': target_value(target), 'eligible': False, 'state': state,
               'model': 'Unidentified ADB device', 'reason': ''}
     if state != 'device':
@@ -59,10 +59,14 @@ def inspect_box(adb, target, state='device'):
         props = parse_properties(command([adb, '-s', target, 'shell', 'getprop']))
         result['properties'] = props
         result['model'] = readable(props.get('ro.product.model', 'Unknown model'))
-        check_properties(props)
+        if profile is not None and profile.get('active_slot') is None:
+            require(props.get('ro.boot.slot_suffix') in ('_a', '_b'), 'Unknown active slot')
+            profile = {**profile, 'active_slot': props['ro.boot.slot_suffix']}
+        check_properties(props, profile=profile)
         result['identity'] = device_identity(props)
         result['eligible'] = True
-        result['reason'] = 'Exact tested firmware; ' + props.get('ro.boot.vbmeta.device_state', 'unknown lock state')
+        label = 'Exact experimental firmware (fresh unlock UNTESTED); ' if profile is not None else 'Exact tested firmware; '
+        result['reason'] = label + props.get('ro.boot.vbmeta.device_state', 'unknown lock state')
     except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
         result['reason'] = readable(error)
     return result
@@ -96,7 +100,7 @@ def open_adb_port(address):
         return None
 
 
-def discover_boxes(adb, scan=False, emit=print):
+def discover_boxes(adb, scan=False, emit=print, profile=None):
     before = adb_devices(command([adb, 'devices', '-l']))
     if scan:
         try:
@@ -123,7 +127,7 @@ def discover_boxes(adb, scan=False, emit=print):
             emit('LAN discovery unavailable: ' + readable(error))
     current = adb_devices(command([adb, 'devices', '-l']))
     with ThreadPoolExecutor(max_workers=8) as pool:
-        return list(pool.map(lambda item: inspect_box(adb, *item), sorted(current.items())))
+        return list(pool.map(lambda item: inspect_box(adb, *item, **({'profile': profile} if profile is not None else {})), sorted(current.items())))
 
 
 def mount_objects(text, kind):

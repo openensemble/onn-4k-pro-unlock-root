@@ -35,13 +35,35 @@ Observed patched boot SHA-256:
 
 The patched image is generated on each target, not shared. The wrapper requires the exact tested output; whether another unit reproduces it is unvalidated.
 
+## November 6, 2026: data-preserving upgrade on the same one device
+
+The already-unlocked, rooted box was updated from **15051976 / slot B** to
+**16202347 / slot A**, Android 14 / **September 1, 2026** patch. The native signed
+OTA completed, its new boot was patched on the target with Magisk 30.7, and
+full readback passed before one ordinary reboot. The new firmware booted with
+root, unlocked/orange state, the same Android installation, all 18 user-installed
+apps, the same home launcher and retained launcher settings. No factory reset,
+relock or unlock writer was used. Debugging needed approval again.
+
+Android marked slot A successful and completed snapshot merge. The prior OTA
+pause was restored. See [sanitized update evidence](../evidence/update-16202347.json)
+and the [exact new build profile](../firmware/build-16202347.json).
+
+**Fresh unlocking and first-time root on 16202347 were NOT tested.** Its separate experimental option
+can erase data or permanently brick a device. The owner is solely responsible
+for choosing to take the risk and all resulting loss or damage. Static equality
+of inspected bootloader/security components is motivation for the experiment,
+not proof of safety or successful unlocking/root. The root option is offered only
+after verified experimental unlock, with its own risk confirmation. The project
+authors do not take responsibility for resulting damage or data loss.
+
 ## Limits
 
-- No second device, other firmware/bootloader, or active slot _a was tested.
-- The portable wrapper has only offline checks, not an end-to-end hardware run.
+- No second physical device was tested. The later slot A result is an upgrade on the same already-unlocked box; neither a fresh slot A nor slot B unlock on 16202347 was tested.
+- The original portable guide, new update wrapper and experimental helpers have offline checks, not an end-to-end hardware run of the packaged workflows.
 - No independent post-cold-boot getter capture exists. Subsequent Android state and successful modified boot support persistence.
 - Hardware secure-boot disablement and arbitrary bootloader replacement are not proved.
 - Bricked-device rescue, fastboot flashing, and signed-OTA recovery are untested.
-- Updates, reset after permanent root, other Magisk versions, and long-term reliability are untested.
+- Only the specific 15051976/B → 16202347/A upgrade was measured. Later updates, reset after permanent root, other Magisk versions and long-term reliability remain untested.
 
 **This can erase data or brick a device. One-unit success does not guarantee repeatability or recovery.** The offline report describes software checks performed during packaging.

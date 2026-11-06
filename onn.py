@@ -14,13 +14,22 @@ import sys
 import uuid
 import zipfile
 
-from onnlib import (ROOT, WORK, PROFILE, Device, configuration, digest, latest_session,
+import discovery
+
+from onnlib import (ROOT, WORK, PROFILE, NEW_PROFILE, Device, configuration, digest, latest_session,
                     load_transport, now, read, refresh_kit_manifest, require, save,
                     sessions, target_value, usb_value, validate_patched_image, verify_files)
 
 
 def setup(args):
     target, usb = target_value(args.target), usb_value(args.usb_uuid)
+    experimental = getattr(args, 'experimental_16202347', False)
+    if experimental:
+        require(getattr(args, 'accept_untested_brick_risk', False) and
+                getattr(args, 'accept_sole_responsibility', False),
+                'UNTESTED unlock on 16202347 can permanently brick the device. The owner is solely responsible. '
+                'Both --accept-untested-brick-risk and --accept-sole-responsibility are required.')
+        require(getattr(args, 'slot', None) in ('a', 'b'), 'Supply the actual --slot a or --slot b; never switch slots to qualify')
     require(not (WORK / 'current.json').exists() or args.new_run,
             'A run exists. Preserve it; use --new-run only after restoring its device startup.')
     if args.adb:
@@ -35,7 +44,8 @@ def setup(args):
     run.mkdir(parents=True)
     for kind in ['read', 'unlock', 'root']:
         kit = run / kind
-        shutil.copytree(ROOT / 'kits' / kind, kit, ignore=shutil.ignore_patterns('__pycache__'))
+        source = 'experimental-' + kind if experimental else kind
+        shutil.copytree(ROOT / 'kits' / source, kit, ignore=shutil.ignore_patterns('__pycache__'))
         (kit / 'tools').mkdir(exist_ok=True)
         shutil.copy2(adb, kit / 'tools/adb')
         (kit / 'tools/adb').chmod(0o755)
@@ -47,11 +57,17 @@ def setup(args):
         runner.write_text(text.replace(needle, 'TARGET = ' + repr(target)))
         plan = read(kit / 'experiment-plan.json')
         plan['usb_mount'] = plan['usb_mount'].replace('ABCD-1234', usb)
+        if experimental:
+            plan['active_slot'] = '_' + args.slot
+            if kind == 'root': plan['guards']['expected_slot'] = '_' + args.slot
         if kind == 'root':
             plan['full_patched_image'] = str(run / 'patched-boot.img')
         save(kit / 'experiment-plan.json', plan)
         refresh_kit_manifest(kit)
     config = {'created_at': now(), 'run_id': run_id, 'target': target, 'usb_uuid': usb}
+    if experimental:
+        config.update(firmware_mode='experimental-unlock-16202347', active_slot='_' + args.slot,
+                      experimental_risk_acknowledged=True, sole_responsibility_accepted=True)
     save(run / 'configuration.json', config)
     save(WORK / 'current.json', config)
     print('Prepared local run:', run)
@@ -84,8 +100,10 @@ def set_target(args, config, run):
 
 
 def run_kit(run, kind, action):
-    result = subprocess.run([sys.executable, str(run / kind / 'test_later.py'),
-                             action, '--execute-device-test'])
+    arguments = [sys.executable, str(run / kind / 'test_later.py'), action, '--execute-device-test']
+    if action == 'test' and read(run / kind / 'experiment-plan.json').get('experimental'):
+        arguments += ['--accept-untested-brick-risk', '--accept-sole-responsibility']
+    result = subprocess.run(arguments)
     require(result.returncode == 0,
             'The operation did not complete. Do not repeat the test. Preserve work/ and follow docs/RECOVERY.md.')
 
@@ -143,12 +161,13 @@ def extract_magisk(output, complete=False):
 
 def patch(device, run, config):
     device.preflight('unlocked')
+    profile = device.profile
     require(not (run / 'patch.json').exists(), 'A patch record exists; inspect it rather than overwrite it')
     require(not (run / 'patched-boot.img').exists(), 'A patched image already exists')
-    stock_gz = ROOT / 'firmware/stock-boot-15051976.img.gz'
-    require(digest(stock_gz) == PROFILE['stock_boot_gzip_sha256'], 'Compressed stock image changed')
+    stock_gz = ROOT / 'firmware' / ('stock-boot-' + profile['incremental'] + '.img.gz')
+    require(digest(stock_gz) == profile['stock_boot_gzip_sha256'], 'Compressed stock image changed')
     stock = gzip.decompress(stock_gz.read_bytes())
-    require(len(stock) == PROFILE['stock_boot_size'] and hashlib.sha256(stock).hexdigest() == PROFILE['stock_boot_sha256'],
+    require(len(stock) == profile['stock_boot_size'] and hashlib.sha256(stock).hexdigest() == profile['stock_boot_sha256'],
             'Stock image integrity failed')
     (run / 'stock-boot.img').write_bytes(stock)
     tools = run / 'patch-tools'
@@ -185,9 +204,9 @@ export LEGACYSAR=false
     require(result.returncode == 0, 'Magisk patch failed; inspect patch.log. No partition was written.')
     device.call('pull', remote + '/new-boot.img', str(run / 'patched-boot.img'), timeout=120)
     patched = (run / 'patched-boot.img').read_bytes()
-    payload = validate_patched_image(stock, patched)
+    payload = validate_patched_image(stock, patched, profile)
     plan = read(run / 'root/experiment-plan.json')
-    require(hashlib.sha256(payload).hexdigest() == plan['payload_sha256'], 'USB payload differs from tested candidate')
+    require(hashlib.sha256(payload).hexdigest() == plan['payload_sha256'], 'USB payload differs from the pinned candidate')
     (run / 'root' / plan['payload_file']).write_bytes(payload)
     refresh_kit_manifest(run / 'root')
     device.call('install', '-r', str(ROOT / 'assets/Magisk-v30.7.apk'), timeout=90)
@@ -195,14 +214,14 @@ export LEGACYSAR=false
                     'patched_sha256': digest(run / 'patched-boot.img'), 'kernel_unchanged': True,
                     'tested_payload_match': True})
     save(run / 'patch.json', receipt)
-    print('Patched on this device, kernel unchanged, and output matches the tested layout. No firmware was flashed.')
+    print('Patched on this device, kernel unchanged, and output matches the pinned layout. No firmware was flashed.')
 
 
 def check_patch_binding(device, run):
     receipt = read(run / 'patch.json')
     require(receipt.get('patched_on_this_device') and receipt.get('tested_payload_match'), 'No validated on-device patch')
     require(receipt['device_binding'] == device.binding(), 'This patch belongs to another Android installation')
-    require(digest(run / 'patched-boot.img') == PROFILE['expected_patched_sha256'], 'Patched image changed')
+    require(digest(run / 'patched-boot.img') == device.profile['expected_patched_sha256'], 'Patched image changed')
     return receipt
 
 
@@ -223,7 +242,9 @@ def root_proof(device, run):
     save(run / 'temporary-root-proof.json', proof)
     require(proof['root_proven'], 'Root not granted/proved. Run root-proof after granting Shell; do not repeat root-test.')
     print(result.stdout.strip())
-    print('Temporary root proved. Normal startup restored. Next: install-root --accept-risk')
+    flags = (' --accept-untested-brick-risk --accept-sole-responsibility'
+             if device.config.get('firmware_mode') == 'experimental-unlock-16202347' else '')
+    print('Temporary root proved. Normal startup restored. Next: install-root --accept-risk' + flags)
 
 
 def main():
@@ -234,12 +255,17 @@ def main():
     mode.add_argument('--preview', action='store_true', help='Show the guide without contacting any device')
     mode.add_argument('--status', action='store_true', help='Show saved progress without contacting any device')
     mode.add_argument('--discover-only', action='store_true', help='Find network ADB devices and list thumb drive volumes on the Onn 4K Pro; no setup or reboot')
+    p.add_argument('--experimental-16202347', action='store_true', help='UNTESTED unlock and optional root; may permanently brick the device')
     sub.add_parser('verify-files', help='Verify packaged files; no device contact')
     p = sub.add_parser('setup', help='Create a local run; no device contact')
     p.add_argument('--target', required=True)
     p.add_argument('--usb-uuid', required=True)
     p.add_argument('--adb')
     p.add_argument('--new-run', action='store_true')
+    p.add_argument('--experimental-16202347', action='store_true')
+    p.add_argument('--slot', choices=['a', 'b'])
+    p.add_argument('--accept-untested-brick-risk', action='store_true')
+    p.add_argument('--accept-sole-responsibility', action='store_true')
     p = sub.add_parser('set-target', help='Update the local address after setup/reset; keep receipts')
     p.add_argument('--target', required=True)
     sub.add_parser('doctor', help='Read and validate firmware identity; no reboot or flash')
@@ -247,8 +273,12 @@ def main():
     for command in ['read-state', 'root-test', 'install-root', 'restore-stock']:
         p = sub.add_parser(command)
         p.add_argument('--accept-risk', action='store_true')
+        p.add_argument('--accept-untested-brick-risk', action='store_true')
+        p.add_argument('--accept-sole-responsibility', action='store_true')
     p = sub.add_parser('unlock')
     p.add_argument('--accept-data-loss', action='store_true')
+    p.add_argument('--accept-untested-brick-risk', action='store_true')
+    p.add_argument('--accept-sole-responsibility', action='store_true')
     p = sub.add_parser('collect-unlock', help='Offline receipt collection from the thumb drive connected to the computer')
     p.add_argument('--usb-path', required=True)
     p = sub.add_parser('restore-startup')
@@ -256,18 +286,29 @@ def main():
     sub.add_parser('verify-unlock')
     sub.add_parser('patch')
     sub.add_parser('root-proof')
+    p = sub.add_parser('experimental-root', help='Opt into experimental root ONLY after this run verifies its experimental unlock')
+    p.add_argument('--accept-untested-brick-risk', action='store_true')
+    p.add_argument('--accept-sole-responsibility', action='store_true')
     p = sub.add_parser('verify-root')
     p.add_argument('--reboot', action='store_true')
     p.add_argument('--usb-removed', action='store_true')
+    p.add_argument('--accept-untested-brick-risk', action='store_true')
+    p.add_argument('--accept-sole-responsibility', action='store_true')
     for command in ['disable-updates', 'restore-updates']:
         p = sub.add_parser(command, help='Change firmware update settings after verified permanent root')
         p.add_argument('--apply', action='store_true')
     sub.add_parser('updates-status', help='Check the saved firmware update choice on the Onn 4K Pro')
+    from firmware_update import add_parser as add_update_parser
+    add_update_parser(sub)
     args = parser.parse_args()
     count = verify_files()
     if args.command in (None, 'wizard'):
-        from wizard import start
-        start(args)
+        from wizard import start, choose_workflow
+        choose_workflow() if args.command is None else start(args)
+        return
+    if args.command == 'update-firmware':
+        from firmware_update import dispatch
+        dispatch(args)
         return
     if args.command == 'verify-files':
         print(f'{count} packaged files verified. No device contacted.')
@@ -276,10 +317,32 @@ def main():
         setup(args)
         return
     config, run = configuration()
+    if config.get('firmware_mode') == 'experimental-unlock-16202347':
+        if args.command in ('read-state', 'unlock', 'experimental-root', 'root-test', 'install-root', 'restore-stock') or (args.command == 'verify-root' and args.reboot):
+            from experimental_root import WARNING
+            print(WARNING if args.command not in ('read-state', 'unlock') else
+                  'UNTESTED unlock on 16202347. Can erase data or permanently brick your device.\n'
+                  'You are solely responsible for taking the risk and all resulting loss or damage.\n'
+                  'The project authors do not take responsibility for resulting damage or data loss.')
+            require(args.accept_untested_brick_risk and args.accept_sole_responsibility,
+                    'Supply both --accept-untested-brick-risk and --accept-sole-responsibility after reading docs/EXPERIMENTAL_UNLOCK.md')
+    if config.get('firmware_mode') == 'updated-16202347':
+        require(args.command in ('set-target', 'doctor', 'updates-status', 'restore-updates'),
+                'This box was updated. Use update-firmware --status/--verify; original build write commands do not apply.')
     if args.command == 'set-target':
         set_target(args, config, run)
         return
     device = Device(config, run)
+    if args.command == 'experimental-root':
+        require(args.accept_untested_brick_risk and args.accept_sole_responsibility,
+                'Read the experimental-root warning and accept both risk/responsibility flags')
+        from experimental_root import accept
+        accept(device,run)
+        return
+    if config.get('firmware_mode') == 'experimental-unlock-16202347' and args.command in (
+            'patch','root-test','root-proof','install-root','verify-root','restore-stock','disable-updates','restore-updates','updates-status'):
+        from experimental_root import check
+        check(device,run)
     if args.command == 'collect-unlock':
         collect_unlock(args, run)
         return
@@ -313,7 +376,8 @@ def main():
                     'Locked-state read was not proved; do not unlock')
             require(roundtrip['original_startup_restored_and_verified'], 'Original startup is not restored')
             save(run / 'locked-read-binding.json', {'device_binding': device.binding(),
-                 'boot_id_after': roundtrip['boot_id_after']})
+                 'boot_id_after': roundtrip['boot_id_after'],
+                 'hardware_identity': discovery.device_identity(discovery.parse_properties(device.shell('getprop').stdout))})
         if kind == 'root':
             root_proof(device, run)
     elif args.command == 'restore-startup':
@@ -321,9 +385,17 @@ def main():
         run_kit(run, args.kit, 'restore')
     elif args.command == 'verify-unlock':
         properties = device.preflight('unlocked')
+        identity = discovery.device_identity(discovery.parse_properties(device.shell('getprop').stdout))
+        if config.get('firmware_mode') == 'experimental-unlock-16202347':
+            require(read(run/'locked-read-binding.json').get('hardware_identity') == identity,
+                    'Different physical device after experimental unlock')
+            capture = read(latest_session(run/'unlock')/'capture-validation.json')
+            require(capture.get('unlock_request_accepted') and capture.get('secure_state_change_observed'),
+                    'No successful experimental unlock capture for this run')
         report = device.inspect_startup(install=True, fresh=True, kind='unlock')
         save(run / 'unlocked-proof.json', {'time': now(), 'properties': properties,
-             'stock_startup': report['before'], 'boot_id': device.boot_id()})
+             'stock_startup': report['before'], 'boot_id': device.boot_id(),
+             'hardware_identity': identity, 'device_binding': device.binding()})
         print('Android reports unlocked/orange, with original startup freshly verified.')
     elif args.command == 'patch':
         patch(device, run, config)
@@ -340,7 +412,7 @@ def main():
     elif args.command in ['install-root', 'verify-root', 'restore-stock']:
         from root_install import install, verify, restore
         if args.command != 'verify-root':
-            require(args.accept_risk, 'This writes boot_b. Read README and supply --accept-risk')
+            require(args.accept_risk, 'This writes the profile-bound active boot partition. Read README and supply --accept-risk')
         if args.command == 'install-root':
             install(device, run, config)
         elif args.command == 'verify-root':

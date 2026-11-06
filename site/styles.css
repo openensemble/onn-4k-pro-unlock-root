@@ -243,3 +243,14 @@ details[open] summary::after { content: "−"; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
 }
+
+/* Firmware workflows keep evidence and experimental risk visible together. */
+.workflow-table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+.workflow-table { width: 100%; border-collapse: collapse; text-align: left; }
+.workflow-table caption { text-align: left; padding: 0 0 1rem; line-height: 1.6; }
+.workflow-table th, .workflow-table td { padding: 1rem; border-bottom: 1px solid #cbd0c5; vertical-align: top; line-height: 1.6; }
+.workflow-table thead { background: #e9eddf; }
+.workflow-table tbody th { min-width: 12rem; }
+.workflow-table td { min-width: 13rem; }
+.workflow-table a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
+.workflow-table strong { font-weight: 750; }

@@ -1,0 +1,83 @@
+{
+  "model": "onn. Streaming Device 4K Pro",
+  "hardware_generation": "Earlier model (pre-2026 hardware), jarvis / SNA",
+  "excluded_models": [
+    "onn. 4K Pro (new 2026 hardware model)"
+  ],
+  "model_2026_supported": false,
+  "model_2026_tested": false,
+  "product": "jarvis / SNA",
+  "android_tv_os": "14",
+  "build_id": "URO4.260304.092",
+  "incremental": "16202347",
+  "fingerprint": "onn/jarvis/SNA:14/URO4.260304.092/16202347:user/release-keys",
+  "security_patch": "2026-09-01",
+  "bootloader": "01.01.260304.175641",
+  "active_slot": "_a",
+  "first_api_level": "31",
+  "abi": "armeabi-v7a",
+  "tested_units": 1,
+  "other_firmware_tested": true,
+  "stock_boot_size": 100663296,
+  "stock_boot_sha256": "8c4b8f5e65fada161cd72450c20cf963c0e1d02aebb96337264e7b7a7ab4f26a",
+  "stock_boot_gzip_sha256": "9bac7c430cfae0252a3a0612628e7020f212ab571de421b8408e77432ff2e9e6",
+  "stock_boot_sha1": "f39cf3ca0c55d513bebf7dfc63b68b76ecd3b9a6",
+  "expected_patched_sha256": "89945a17cafdfb9d11b051ddd69c0a68fc7c6fe91b222d439a5036a1d59a50de",
+  "magisk_version": "30.7",
+  "magisk_version_code": 30700,
+  "magisk_apk_sha256": "e0d32d2123532860f97123d927b1bb86c4e08e6fd8a48bfc6b5bee0afae9ebd5",
+  "magisk_release_url": "https://github.com/topjohnwu/Magisk/releases/tag/v30.7",
+  "magisk_apk_url": "https://github.com/topjohnwu/Magisk/releases/download/v30.7/Magisk-v30.7.apk",
+  "adb_version": "37.0.1-15733141",
+  "adb_sha256": "a902be8f45c6c62e76c9efaf6947a0fa747c9cabd89a2ac8e0d16ecb30b3ed01",
+  "ota_url": "https://android.googleapis.com/packages/ota-api/package/c21f38cd1d378de1c1dda549f18f7effae7733f2.zip",
+  "ota_sha256": "522a0a4b365f2e45f3620d1831043e487a4596cea99c5137485dcf352c61ecde",
+  "boot_target": "/dev/block/by-name/boot_a",
+  "boot_device": "/dev/block/mmcblk0p20",
+  "stock_startup": "run storeboot_base;",
+  "patch_policy": "Patch on the target device and require the exact tested output hash; stop if it differs. No shared patched image is included.",
+  "ota_size": 899267233,
+  "payload_offset": 4093,
+  "payload_size": 899258547,
+  "payload_metadata_size": 41624,
+  "upgrade_verified_devices": 1,
+  "upgrade_test_date": "2026-11-06",
+  "fresh_unlock_tested_devices": 0,
+  "fresh_unlock_status": "EXPERIMENTAL, UNTESTED: can permanently brick the device. The owner is solely responsible for choosing to take the risk and all resulting loss or damage.",
+  "packaged_update_workflow_hardware_tested": false,
+  "payload_properties": {
+    "FILE_HASH": "soo17r2u6FdeSmnDa9EbUJAneGcs6qZnHmG7wA/lDMA=",
+    "FILE_SIZE": "899258547",
+    "METADATA_HASH": "UKP303KKl8EXDpSKTAlN0HZpbw9MApQUWNmzOCntzwU=",
+    "METADATA_SIZE": "41101"
+  },
+  "physical_partition_images": {
+    "boot": {
+      "size": 100663296,
+      "sha256": "8c4b8f5e65fada161cd72450c20cf963c0e1d02aebb96337264e7b7a7ab4f26a"
+    },
+    "bootloader": {
+      "size": 4100096,
+      "sha256": "068f8237e1b619151737e3701b40f085abbc24c7c6120a8a223154ca4f548fa2"
+    },
+    "vendor_boot": {
+      "size": 100663296,
+      "sha256": "87491312b32c47034796dc4d6f0119962a8998b01ef3fbf25253a3f4520e35b4"
+    },
+    "dtbo": {
+      "size": 2097152,
+      "sha256": "6f96d1eb59ed7d3ea0c2240252de725828c51de6e85f58d67a555234aec6c3ab"
+    },
+    "vbmeta": {
+      "size": 8192,
+      "sha256": "75f85d6d012ce2ec4ccd5f1f132347ed30a5c73b4bdf669024bcdc927ece0f18"
+    },
+    "vbmeta_system": {
+      "size": 4096,
+      "sha256": "f33bc93634e67515b45a1da220b137f2a32323de8c8fc4e0f005f4dac6f27795"
+    }
+  },
+  "fresh_root_tested_devices": 0,
+  "fresh_root_status": "EXPERIMENTAL, UNTESTED after a fresh unlock. Can permanently brick the device; the owner accepts sole responsibility.",
+  "root_marker": "ONN-MAGISK-16202347-EXP"
+}

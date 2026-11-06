@@ -1,6 +1,6 @@
 # Building and offline validation
 
-**These artifacts target the earlier onn. 4K Pro (jarvis / SNA), not the new 2026 model. Rebuilding them does not add support for the 2026 model or other firmware.**
+**These artifacts target the earlier onn. 4K Pro (jarvis / SNA), not the new 2026 model. The separately pinned 16202347 update/experimental profiles do not add support for the 2026 hardware or unknown firmware.**
 
 The prebuilt artifacts are included for normal use. Rebuilding is optional developer work and does not authorize hardware tests. All commands here operate on local files.
 
@@ -44,3 +44,24 @@ MANIFEST.json records SHA-256 for curated files; ordinary user commands verify i
 Maintainers modifying curated files must inspect the diff, regenerate the manifest with tools/make-manifest.py, and rerun offline validation. Never regenerate checksums merely to bypass a failed firmware or payload guard.
 
 The local report goes under work/. A sanitized summary can be saved in evidence/ after review. Raw USB environment captures, personal addresses, device IDs and original full RAM dumps must remain outside the repository.
+
+## New firmware workflows
+
+The 16202347 updater and experimental helpers are tested with mocked devices,
+small synthetic OTA archives, real tar/header validation and compiled APK/boot
+hash checks. Cases cover incomplete backups, wrong OTA bytes/layout, changed
+profiles/slots, uncertain writes, replay prevention, reboot prerequisites,
+snapshot merge before restoring OTA policy, and explicit experimental consent.
+The optional-root checks cover successful-unlock gating, decline without a root
+action, separate root consent, and exact new-firmware slot A/B install guards.
+No test command contacts the Onn. The full wrapper remains untested on hardware.
+
+For a reviewed change to a separate experimental APK:
+
+    python3 tools/build-apk.py experimental-read --android-jar /YOUR_SDK/platforms/android-34/android.jar --build-tools /YOUR_SDK/build-tools/34.0.0 --write-experimental-artifact
+
+Repeat with `experimental-unlock` and `experimental-root`. This explicit maintainer option only replaces
+experimental package artifacts; original tested APKs cannot be replaced with it.
+Inspect source/DEX changes and retain local signing keys privately. Without the
+option, rebuilt DEX must match the existing packaged artifact. Build output
+directories must be preserved and moved before rebuilding, not overwritten blindly.

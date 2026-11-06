@@ -37,3 +37,17 @@ Capstone, Unicorn, and Keystone are used only for offline validation/building an
 ## Device identification photo
 
 `assets/images/onn-4k-pro-2024.png` is an unmodified product photo from [Walmart's earlier Onn 4K Pro listing (item 5193222892)](https://www.walmart.com/ip/5193222892), retrieved October 21, 2026. It shows the supported model for identification; the product image and trademarks belong to their respective owners.
+
+## Firmware 16202347 and experimental helpers
+
+`firmware/stock-boot-16202347.img.gz` expands to the authenticated, unmodified
+96 MiB stock boot from the [official 16202347 OTA](https://android.googleapis.com/packages/ota-api/package/c21f38cd1d378de1c1dda549f18f7effae7733f2.zip).
+The [new profile](firmware/build-16202347.json) pins the OTA, stock image and
+expected target-generated patch hashes. The complete OTA and patched boot
+images are not bundled. Root patches must be made on each owner's device.
+
+The three separate experimental read, unlock and USB-root helper APKs are built from the included Java sources
+with new package IDs and exact 16202347 fingerprint guards. Their local build
+signing keys are kept outside the package in ignored `work/`. Native payloads
+remain byte-identical to the original ones. None of this establishes fresh-unlock
+or first-time-root hardware validation on 16202347.

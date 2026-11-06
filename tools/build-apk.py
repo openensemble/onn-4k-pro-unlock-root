@@ -7,9 +7,11 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser(description=__doc__)
-p.add_argument('kind', choices=['read', 'unlock', 'root'])
+p.add_argument('kind', choices=['read', 'unlock', 'root', 'experimental-read', 'experimental-unlock', 'experimental-root'])
 p.add_argument('--android-jar', type=Path, required=True)
 p.add_argument('--build-tools', type=Path, required=True)
+p.add_argument('--write-experimental-artifact', action='store_true',
+               help='Package a reviewed experimental APK; never installs it')
 args = p.parse_args()
 kit = ROOT / 'kits' / args.kind
 out = ROOT / 'work' / 'apk-build' / args.kind
@@ -37,8 +39,16 @@ run('keytool', '-genkeypair', '-keystore', out / 'diagnostic.jks', '-alias', 'di
 run(tools / 'apksigner', 'sign', '--ks', out / 'diagnostic.jks', '--ks-pass',
     'pass:local-development', '--out', out / 'diagnostic.apk', out / 'aligned.apk')
 run(tools / 'apksigner', 'verify', '--verbose', out / 'diagnostic.apk')
-# Compare executable source output; signatures differ because the key is new.
-with zipfile.ZipFile(out / 'diagnostic.apk') as rebuilt, zipfile.ZipFile(next((kit / 'build').glob('*.apk'))) as tested:
-    assert rebuilt.read('classes.dex') == tested.read('classes.dex'), 'DEX differs; review compiler/tool versions and sources'
-print('APK built; DEX exactly matches tested artifact. Output:', out / 'diagnostic.apk')
+if args.write_experimental_artifact:
+    assert args.kind in ('experimental-read', 'experimental-unlock', 'experimental-root'), 'Original tested APKs must not be replaced'
+    import shutil
+    name = 'secure-state-' + args.kind.removeprefix('experimental-') + '-experiment.apk'
+    if args.kind == 'experimental-root': name = 'magisk-usb-boot-experiment.apk'
+    shutil.copyfile(out / 'diagnostic.apk', kit / 'build' / name)
+    print('Experimental APK packaged from reviewed source; NO hardware validation:', kit / 'build' / name)
+else:
+    # Compare executable output; signatures differ because the key is new.
+    with zipfile.ZipFile(out / 'diagnostic.apk') as rebuilt, zipfile.ZipFile(next((kit / 'build').glob('*.apk'))) as packaged:
+        assert rebuilt.read('classes.dex') == packaged.read('classes.dex'), 'DEX differs; review compiler/tool versions and sources'
+    print('APK built; DEX exactly matches packaged artifact. Output:', out / 'diagnostic.apk')
 print('New local signing key; APK signatures differ. Nothing was installed.')

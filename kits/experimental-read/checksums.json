@@ -1,0 +1,15 @@
+{
+  "files": {
+    "AndroidManifest.xml": "0295cc0ab823f3f1df3b021a69e4d532e58d533f40d9e82ef6c4dd4d48f864d0",
+    "ONNARM23.TXT": "4d08b7f15d5986318b3e1979b325be64f05c4e00cce1b71866a0bb5eca57d31e",
+    "ONNPRO23.IMG": "76b82087fb7c40c35e109e7cafe2fe66a0fa12a21492c33e12046e67bd37a576",
+    "build/secure-state-read-experiment.apk": "ad491fa04749f376076bd7a16ed7af8f67593f268fd7365e05a3814cbf6faec3",
+    "collect_result.py": "e420535fe05ade1b973f3a66793edb567c2fdee6579573f13e7df41c5cf6bd7b",
+    "emulator-fixture.json": "8d3ad887bb323b08ca2e1f0debe68aafc9f6556f16b8cd0d5ed08f1e8656dc26",
+    "experiment-plan.json": "437087bbf40f4f3beeda32f3014c9d37f5f7b401004fdcf97b1ca2daee45f370",
+    "secure-read.S": "ff4899144d1d8b6898a27c8130b57793d7578902c6ad3b4a024fb35d108f357b",
+    "src/local/onn/experimentalread/SecureReadReceiver.java": "5cce0787c04ffb721bac3ff7c58879526ebe95a14fffac4c3fa32fddd1671616",
+    "test_later.py": "3f45d5fd854a32b8ac081836562e4baa45b2d060165c7dbcf2ec4c9d5ee09b57",
+    "validate_offline.py": "fc7b0715b70ace77471d60fb8ec672faebb10004f70680d9e572de4aad951010"
+  }
+}

@@ -46,11 +46,11 @@ if not result.wasSuccessful():
     raise SystemExit(1)
 report = {'time': now(), 'packaged_files_verified': count, 'unit_tests_passed': result.testsRun,
           'device_contacted': False, 'hardware_validation_of_wrapper': False, 'models': {}}
-for kind in ['read', 'unlock', 'root']:
+for kind in ['read', 'unlock', 'root', 'experimental-read', 'experimental-unlock', 'experimental-root']:
     with tempfile.TemporaryDirectory(prefix='onn-offline-') as directory:
         kit = Path(directory) / kind
         shutil.copytree(ROOT / 'kits' / kind, kit, ignore=shutil.ignore_patterns('__pycache__'))
-        script = 'check_boot_flow.py' if kind == 'root' else 'validate_offline.py'
+        script = 'check_boot_flow.py' if kind.endswith('root') else 'validate_offline.py'
         completed = subprocess.run([sys.executable, str(kit / script)], capture_output=True, text=True, timeout=40)
         require(completed.returncode == 0, kind + ': ' + completed.stdout + completed.stderr)
         report['models'][kind] = json.loads(completed.stdout)

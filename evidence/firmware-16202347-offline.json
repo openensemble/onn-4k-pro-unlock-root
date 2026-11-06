@@ -1,0 +1,110 @@
+{
+  "old_fingerprint": "onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys",
+  "new_fingerprint": "onn/jarvis/SNA:14/URO4.260304.092/16202347:user/release-keys",
+  "new_security_patch": "2026-09-01",
+  "source_url": "https://android.googleapis.com/packages/ota-api/package/c21f38cd1d378de1c1dda549f18f7effae7733f2.zip",
+  "ota_sha256": "522a0a4b365f2e45f3620d1831043e487a4596cea99c5137485dcf352c61ecde",
+  "ota_signature_verified_against_saved_device_certificate": true,
+  "extracted_partition_checks": [
+    {
+      "partition": "boot",
+      "sha256": "8c4b8f5e65fada161cd72450c20cf963c0e1d02aebb96337264e7b7a7ab4f26a",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "bootloader",
+      "sha256": "068f8237e1b619151737e3701b40f085abbc24c7c6120a8a223154ca4f548fa2",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "dtbo",
+      "sha256": "6f96d1eb59ed7d3ea0c2240252de725828c51de6e85f58d67a555234aec6c3ab",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "odm",
+      "sha256": "2645dc8e8c1f6a08b61ceedc484f91e1e5d74d4bfbb616780a45b35d7739a30b",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "odm_dlkm",
+      "sha256": "b418117449582729d37c19e3e456f49b3d91e34ee432b8f37a295a448a8eee1f",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "odm_ext",
+      "sha256": "a48c7e91f75a256a9b72c3a30c1f466a53d194e5ba1dc72d05b40f6d76a1e27b",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "oem",
+      "sha256": "47556ccc2fdb9d0ade31e5fccfa4924aa74d9ccb54d2527db53e01b3578a1941",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "product",
+      "sha256": "e9dea0b2c84ed8f8510b1bb27f3785d4f543996833e5218f6d2beb940381dee5",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "system",
+      "sha256": "cbbcfd934fd754c374c42b31e7f04a4ee5c152ec3f9dd2af90757d1e7cfbc05f",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "system_dlkm",
+      "sha256": "89da316bcd716c4197e9617272a0f96f711da53de60c71f50e8102d8f3883f6a",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "system_ext",
+      "sha256": "4a39310c6808454b634432b5a1af760d8dc03eddfe147d4b94925ca772275509",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "vbmeta",
+      "sha256": "75f85d6d012ce2ec4ccd5f1f132347ed30a5c73b4bdf669024bcdc927ece0f18",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "vbmeta_system",
+      "sha256": "f33bc93634e67515b45a1da220b137f2a32323de8c8fc4e0f005f4dac6f27795",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "vendor",
+      "sha256": "a9a05c5a085731e0f386f2fde05f14c7f9943377f91a32729e0af982a4181f36",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "vendor_boot",
+      "sha256": "87491312b32c47034796dc4d6f0119962a8998b01ef3fbf25253a3f4520e35b4",
+      "matches_authenticated_payload_manifest": true
+    },
+    {
+      "partition": "vendor_dlkm",
+      "sha256": "1ba9ea454caefe814f9df26059599481f377db2904bc829483e1a0516564ec68",
+      "matches_authenticated_payload_manifest": true
+    }
+  ],
+  "bootloader_byte_identical": true,
+  "kernel_byte_identical": true,
+  "systemcontrol_path_files_identical": 9,
+  "selinux_files_identical": 59,
+  "vendor_trusted_applications_identical": 11,
+  "generic_ramdisk_changed_paths": [
+    "init",
+    "system/bin/snapuserd_ramdisk",
+    "system/etc/ramdisk/build.prop"
+  ],
+  "vbmeta_system_rollback_index": {
+    "old": 1772323200,
+    "new": 1788220800
+  },
+  "init_boot_partition_in_ota": false,
+  "manifest_postinstall_hooks_enabled": false,
+  "inspected_at_utc": "2026-11-06T08:48:23.849772+00:00",
+  "device_contacted": false,
+  "conclusion": "Static evidence motivated a separate experimental unlock profile. File equality does not prove a secure-state write will work, reset recovery, safety or a rescue path.",
+  "fresh_unlock_hardware_tests": 0
+}

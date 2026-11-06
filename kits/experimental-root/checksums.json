@@ -1,0 +1,13 @@
+{
+  "files": {
+    "AndroidManifest.xml": "346d20b349b0c9723f92c869d994eacc0c47881bc3847ef140cc69cf84358899",
+    "ONNARM26.TXT": "a2e6b09f4e7bbef13c1af9a9d73bac19dc923572f292e2bc948bdf7c29554200",
+    "boot-script.txt": "69b15d816e969a6497c0336059134280f699a2e9845c36478d51a9fa4e814957",
+    "build/magisk-usb-boot-experiment.apk": "c3024c1545ca17fd02e946b88f6e2fc4404258301edad65d52cfe9efece86d27",
+    "check_boot_flow.py": "5c6ad496fe8f3028857153a55967c9753e77744711276c6d87ba9dd3bdb66703",
+    "collect_result.py": "1636bbfc03d4e34bea92224bf36f507d3dc2cba2ce08979883797fb24dd5bfe4",
+    "experiment-plan.json": "dc37a4bb9b43796aaa5b0aca33c01176d8f738d447a0b73cfc818d04167e3b3b",
+    "src/local/onn/experimentalmagisk/MagiskUsbReceiver.java": "51c663a6d5a8ff92f0f7ce453f35bad074136f4f1e5bce166497265836d909a3",
+    "test_later.py": "10b8b9bea252e4747e5f60830f3d1294d0e80ce22bb559bdb8ca903572f7a998"
+  }
+}

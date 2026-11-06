@@ -16,6 +16,22 @@ import uuid
 ROOT = Path(__file__).resolve().parent
 WORK = ROOT / 'work'
 PROFILE = json.loads((ROOT / 'firmware/tested-profile.json').read_text())
+NEW_PROFILE = json.loads((ROOT / 'firmware/build-16202347.json').read_text())
+
+
+def run_profile(config):
+    kind = config.get('firmware_mode', 'original')
+    require(kind in ('original', 'experimental-unlock-16202347', 'updated-16202347'),
+            'Unknown firmware workflow; do not bypass profile checks')
+    if kind == 'original':
+        return PROFILE
+    slot = config.get('active_slot', '_a')
+    require(slot in ('_a', '_b'), 'An exact active slot is required')
+    if kind == 'updated-16202347':
+        require(slot == '_a', 'Only the measured B-to-A update is supported')
+    return {**NEW_PROFILE, 'active_slot': slot,
+            'boot_target': '/dev/block/by-name/boot' + slot,
+            'boot_device': '/dev/block/mmcblk0p20' if slot == '_a' else '/dev/block/mmcblk0p21'}
 
 
 def require(condition, message):
@@ -115,14 +131,15 @@ def latest_session(kit):
     return found[0]
 
 
-def check_properties(properties, state=None):
+def check_properties(properties, state=None, profile=None):
+    profile = PROFILE if profile is None else profile
     required = {
-        'ro.build.fingerprint': PROFILE['fingerprint'],
-        'ro.bootloader': PROFILE['bootloader'],
-        'ro.build.version.security_patch': PROFILE['security_patch'],
-        'ro.boot.slot_suffix': PROFILE['active_slot'],
-        'ro.product.first_api_level': PROFILE['first_api_level'],
-        'ro.product.cpu.abi': PROFILE['abi'],
+        'ro.build.fingerprint': profile['fingerprint'],
+        'ro.bootloader': profile['bootloader'],
+        'ro.build.version.security_patch': profile['security_patch'],
+        'ro.boot.slot_suffix': profile['active_slot'],
+        'ro.product.first_api_level': profile['first_api_level'],
+        'ro.product.cpu.abi': profile['abi'],
         'sys.boot_completed': '1',
     }
     if state:
@@ -136,10 +153,11 @@ def check_properties(properties, state=None):
                 f'Unsupported device/state: {name}={properties.get(name)!r}; expected {expected!r}. Stop; do not bypass this check.')
 
 
-def validate_patched_image(stock, patched):
-    require(len(stock) == len(patched) == PROFILE['stock_boot_size'], 'Unexpected boot image size')
-    require(hashlib.sha256(stock).hexdigest() == PROFILE['stock_boot_sha256'], 'Wrong stock image')
-    require(hashlib.sha256(patched).hexdigest() == PROFILE['expected_patched_sha256'],
+def validate_patched_image(stock, patched, profile=None):
+    profile = PROFILE if profile is None else profile
+    require(len(stock) == len(patched) == profile['stock_boot_size'], 'Unexpected boot image size')
+    require(hashlib.sha256(stock).hexdigest() == profile['stock_boot_sha256'], 'Wrong stock image')
+    require(hashlib.sha256(patched).hexdigest() == profile['expected_patched_sha256'],
             'Device-generated patched image differs from the tested layout. Stop; do not substitute another device\'s patched image.')
     require(patched[:8] == b'ANDROID!' and struct.unpack_from('<I', patched, 40)[0] == 4,
             'Unexpected Android boot header')
@@ -157,6 +175,7 @@ def validate_patched_image(stock, patched):
 class Device:
     def __init__(self, config, run):
         self.config, self.run = config, run
+        self.profile = run_profile(config)
         self.adb = [str(run / 'root/tools/adb'), '-s', config['target']]
 
     def call(self, *args, timeout=30, check=True):
@@ -193,7 +212,7 @@ class Device:
                  'sys.boot_completed', 'ro.boot.flash.locked', 'ro.boot.vbmeta.device_state',
                  'ro.boot.verifiedbootstate']
         properties = {name: self.property(name) for name in names}
-        check_properties(properties, state)
+        check_properties(properties, state, self.profile)
         save(self.run / 'last-device-status.json', {'time': now(), 'properties': properties})
         return properties
 
@@ -221,20 +240,22 @@ class Device:
         return result == 'PRESENT'
 
     def read_partition(self, name, output):
-        require(name == 'boot_b', 'Only the tested boot_b backup is supported')
+        require(name in ('boot_a', 'boot_b') and '/dev/block/by-name/' + name == self.profile['boot_target'],
+                'Only the exact profile-bound active boot backup is supported')
         require(not output.exists(), 'Refusing to overwrite a boot backup')
         temporary = output.with_suffix('.img.partial')
-        command = "/debug_ramdisk/su -c 'dd if=/dev/block/by-name/boot_b bs=1048576 count=96 2>/dev/null'"
+        command = "/debug_ramdisk/su -c 'dd if=/dev/block/by-name/" + name + " bs=1048576 count=96 2>/dev/null'"
         with temporary.open('xb') as dest:
             result = subprocess.run(self.adb + ['exec-out', command], stdout=dest,
                                     stderr=subprocess.PIPE, timeout=120)
-        require(result.returncode == 0 and temporary.stat().st_size == PROFILE['stock_boot_size'], 'Incomplete boot backup')
-        require(digest(temporary) == PROFILE['stock_boot_sha256'], 'Boot partition does not match the verified stock image')
+        require(result.returncode == 0 and temporary.stat().st_size == self.profile['stock_boot_size'], 'Incomplete boot backup')
+        require(digest(temporary) == self.profile['stock_boot_sha256'], 'Boot partition does not match the verified stock image')
         temporary.replace(output)
 
     def partition_hashes(self):
+        slot = self.profile['active_slot']
         result = self.root('sha256sum /dev/block/by-name/boot_a /dev/block/by-name/boot_b '
-                           '/dev/block/by-name/vbmeta_b /dev/block/by-name/vendor_boot_b')
+                          '/dev/block/by-name/vbmeta' + slot + ' /dev/block/by-name/vendor_boot' + slot, timeout=90)
         hashes = {line.split()[1]: line.split()[0] for line in result.stdout.splitlines()
                   if re.match(r'^[0-9a-f]{64}  /dev/block/', line)}
         require(len(hashes) == 4, 'Incomplete partition hashes')

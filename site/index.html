@@ -27,12 +27,12 @@
     "@context": "https://schema.org",
     "@type": "TechArticle",
     "headline": "onn. 4K Pro (2024) Unlock & Root Guide",
-    "description": "Experimental unlock and permanent Magisk root for the earlier onn. 4K Pro (jarvis / SNA), tested on one unit with firmware URO4.260304.011.B1 / 15051976.",
+    "description": "Experimental unlock and permanent Magisk root for the earlier onn. 4K Pro (jarvis / SNA), original unlock/root and an upgrade to firmware 16202347 verified on one unit; fresh unlock and first-time root on 16202347 are untested.",
     "author": {"@type": "Organization", "name": "OpenEnsemble", "url": "https://github.com/openensemble"},
     "mainEntityOfPage": "https://openensemble.github.io/onn-4k-pro-unlock-root/",
     "image": "https://openensemble.github.io/onn-4k-pro-unlock-root/assets/social-card.png",
     "datePublished": "2026-10-21",
-    "dateModified": "2026-10-21",
+    "dateModified": "2026-11-06",
     "inLanguage": "en"
   }
   </script>
@@ -105,12 +105,12 @@
         </article>
         <article class="result">
           <div class="result-symbol" aria-hidden="true">01<span class="unit-label"> unit</span></div>
-          <h3>Clearly bounded testing</h3>
-          <p>One device and one firmware configuration. The packaged guide has offline checks; its full workflow has not been tested end to end on hardware.</p>
+          <h3>Upgrade verified on one device</h3>
+          <p>15051976 → 16202347 retained root, the existing unlock, apps and setup on the same one box. No reset. Fresh unlocking and first-time root on 16202347 remain untested.</p>
           <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RESULTS.md#limits">Read the limits <span aria-hidden="true">↗</span></a>
         </article>
       </div>
-      <p class="section-footnote">Measurements recorded October 21, 2026. Software and test dates do not identify the hardware generation.</p>
+      <p class="section-footnote">Original unlock/root measured October 21; upgrade measured November 6, 2026. Software and test dates do not identify the hardware generation.</p>
     </section>
 
     <section class="compatibility-section" id="compatibility" aria-labelledby="compatibility-title">
@@ -118,13 +118,13 @@
         <div class="compatibility-intro">
           <p class="eyebrow">02 / CHECK YOUR BOX</p>
           <h2 id="compatibility-title">Same name.<br>Different hardware.</h2>
-          <p>The “4K Pro” name alone is not enough. This project covers the <strong>original 2024 jarvis / SNA model</strong>, and only the configuration shown here.</p>
+          <p>The “4K Pro” name alone is not enough. This project covers the <strong>original 2024 jarvis / SNA model</strong>, with the separate workflow limits below.</p>
           <p>Check every value before you begin. A match does not guarantee success on another unit. Do not bypass the checks or switch slots to make a device qualify.</p>
           <a class="text-link" href="https://github.com/openensemble/onn-4k-pro-unlock-root#1-connect-and-check-firmware">How to check your firmware <span aria-hidden="true">↗</span></a>
           <div class="unsupported-note"><span aria-hidden="true">×</span><p><strong>Unsupported hardware</strong>2023 onn. 4K (non-Pro), new 2026 4K Pro, and all other models.</p></div>
         </div>
         <div class="spec-sheet">
-          <div class="spec-heading"><span class="status-dot" aria-hidden="true"></span> ONLY TESTED CONFIGURATION</div>
+          <div class="spec-heading"><span class="status-dot" aria-hidden="true"></span> ORIGINAL UNLOCK / ROOT PROFILE</div>
           <dl>
             <div><dt>Device</dt><dd>onn. 4K Pro <span class="spec-tag">2024</span></dd></div>
             <div><dt>Product identity</dt><dd><code>jarvis / SNA</code></dd></div>
@@ -140,6 +140,27 @@
       </div>
     </section>
 
+    <section class="section container" id="firmware-workflows" aria-labelledby="firmware-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">CHOOSE YOUR FIRMWARE WORKFLOW</p><h2 id="firmware-title">Firmware update, unlock<br>and optional root.</h2></div>
+        <p class="section-summary">16202347 is the newest reviewed firmware in this package. Unknown future releases are never selected automatically.</p>
+      </div>
+      <div class="workflow-table-wrap" tabindex="0" aria-label="Firmware workflows and validation limits">
+        <table class="workflow-table">
+          <caption>Evidence comes from one 2024 jarvis / SNA device. Packaged workflows have offline checks; they have not been run end to end on hardware.</caption>
+          <thead><tr><th scope="col">Workflow</th><th scope="col">Starting point</th><th scope="col">What is verified</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Original unlock and root</th><td>15051976, locked, slot B</td><td>Unlock, required reset and persistent root verified on one device.</td></tr>
+            <tr><th scope="row"><a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/FIRMWARE_UPDATE.md">Update and keep root ↗</a></th><td>Rooted/unlocked 15051976 B → 16202347 A</td><td><strong>Upgrade tested and verified on one device.</strong> Apps, settings and root retained. Live status messages, backups and readback checks.</td></tr>
+            <tr><th scope="row"><a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/EXPERIMENTAL_UNLOCK.md">Experimental unlock + optional root ↗</a></th><td>Already on 16202347, locked, existing slot A or B</td><td><strong>NOT HARDWARE TESTED.</strong> Can erase data or permanently brick the device. Optional root is offered only after successful unlock verification, with a separate risk acknowledgment. Both fresh unlock and root are untested.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="risk-notice">
+        <p><strong>Experimental unlock and root on 16202347 can permanently brick your device.</strong> Recovery is not guaranteed. You are solely responsible for choosing to take the risk and for all resulting loss, damage, costs or loss of use. The project authors do not take responsibility for resulting damage or data loss. A successful upgrade of an already-unlocked box does not prove that a fresh unlock or first-time root works.</p>
+      </div>
+    </section>
+
     <section class="section container start-section" id="get-started" aria-labelledby="start-title">
       <div class="section-heading">
         <div><p class="eyebrow">03 / START WITH THE GUIDE</p><h2 id="start-title">A guided setup.<br>An informed decision.</h2></div>
@@ -147,13 +168,13 @@
       </div>
       <div class="risk-notice">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 10 18H2L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9v5m0 3v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <p><strong>Unlocking requires a factory reset. Flashing can brick your device.</strong> Back up your data and read the <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RECOVERY.md">recovery and stopping conditions</a> first. Recovery is not guaranteed.</p>
+        <p><strong>Unlocking can erase your setup. Flashing can permanently brick your device.</strong> Back up your data and read the <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/docs/RECOVERY.md">recovery and stopping conditions</a> first. Recovery is not guaranteed.</p>
       </div>
       <div class="start-layout">
         <ol class="steps">
-          <li><span class="step-number">01</span><div><h3>Identify your device</h3><p>Match the model, exact firmware, bootloader, and slot B. Start with an unmodified stock boot image.</p></div></li>
-          <li><span class="step-number">02</span><div><h3>Get the essentials ready</h3><p>A Linux x86_64 computer, Python 3.10+, network ADB access, normal device power, and a USB drive with a FAT32 first partition.</p></div></li>
-          <li><span class="step-number">03</span><div><h3>Read, then run the guide</h3><p>The full README covers preparation, the reset, root installation, verification, and when to stop.</p></div></li>
+          <li><span class="step-number">01</span><div><h3>Identify your device</h3><p>Match the model, firmware, bootloader and starting state for your chosen workflow. The original unlock needs stock slot B; the upgrade needs the covered existing root.</p></div></li>
+          <li><span class="step-number">02</span><div><h3>Get the essentials ready</h3><p>A Linux x86_64 computer, Python 3.10+, network ADB access, normal device power, and enough backup space. Unlock experiments also require a USB drive with a FAT32 first partition.</p></div></li>
+          <li><span class="step-number">03</span><div><h3>Read, then run the guide</h3><p>The menu separates original unlock/root, the reviewed upgrade, and the untested new-firmware unlock. Read its dedicated instructions and risk notices first.</p></div></li>
         </ol>
         <div class="terminal-wrap">
           <div class="terminal">
@@ -174,10 +195,10 @@ python3 onn.py</code></pre>
         <div><p class="eyebrow">04 / BEFORE YOU BEGIN</p><h2 id="faq-title">A few good<br>questions.</h2><p class="faq-intro">Know what this project covers before you change your device.</p></div>
         <div class="faq-list">
           <details open><summary>Is this for the 2023 onn. 4K?</summary><div class="faq-answer"><p>No. The 2023 onn. 4K non-Pro is a different device. This guide is for the <strong>original 2024 onn. 4K Pro (jarvis / SNA)</strong>, pictured above. Use the <a href="https://www.walmart.com/ip/5193222892">supported model’s product listing</a> and the firmware checks to identify your box.</p></div></details>
-          <details><summary>Does the new 2026 4K Pro work?</summary><div class="faq-answer"><p>No support is provided for the new 2026 hardware. It is untested. The March 2026 security patch and October 2026 test date on this page refer to software and testing on the earlier model.</p></div></details>
-          <details><summary>Will I lose my apps and settings?</summary><div class="faq-answer"><p>Unlocking required a factory reset on the tested unit, erasing apps, accounts, and settings. Installing permanent root afterward preserved the new setup. Back up anything you need before starting.</p></div></details>
+          <details><summary>Does the new 2026 4K Pro work?</summary><div class="faq-answer"><p>No support is provided for the new 2026 hardware. It is untested. The 2026 security patches and test dates refer to software and testing on the earlier 2024 model.</p></div></details>
+          <details><summary>Will I lose my apps and settings?</summary><div class="faq-answer"><p>Unlocking required a factory reset on the tested unit, erasing apps, accounts, and settings. The later upgrade to 16202347 preserved that setup and root. Fresh unlocking on 16202347 is untested; expect data loss and possible permanent bricking. Back up anything you need before starting.</p></div></details>
           <details><summary>Is permanent root actually verified?</summary><div class="faq-answer"><p>Yes, on the single tested unit: root returned after a normal reboot with the thumb drive physically removed. The <a href="https://github.com/openensemble/onn-4k-pro-unlock-root/blob/main/evidence/root-after-reboot.json">original measurements</a> include the root identity, partition hashes, and Magisk environment checks. This does not establish repeatability on another unit or long-term reliability.</p></div></details>
-          <details><summary>Can I use a different firmware or slot A?</summary><div class="faq-answer"><p>No. Only the exact configuration above with slot <code>_b</code> has been tested. The guide stops on a mismatch. Do not downgrade, switch slots, or bypass checks to force compatibility.</p></div></details>
+          <details><summary>What about 16202347 or slot A?</summary><div class="faq-answer"><p>The specific rooted 15051976/B → 16202347/A upgrade was verified on one device. A separate fresh-unlock option for locked 16202347 on existing slot A or B is <strong>untested and can permanently brick the device</strong>; you take sole responsibility for that risk. Other builds remain unsupported. Do not downgrade, switch slots, or bypass checks to force compatibility.</p></div></details>
           <details><summary>Can I use Windows, macOS, or a shared patched image?</summary><div class="faq-answer"><p>The documented host is Linux x86_64; other host systems are untested. The boot image must be patched on your own target device, following the guide. Do not use another person’s patched image.</p></div></details>
         </div>
       </div>

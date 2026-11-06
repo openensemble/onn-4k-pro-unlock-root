@@ -2,11 +2,31 @@
 
 **Earlier onn. 4K Pro (jarvis / SNA) only. The new 2026 hardware model is unsupported and untested; do not use these files on it.**
 
-**Only tested on firmware URO4.260304.011.B1 / 15051976, Android TV 14, security patch 2026-03-01, bootloader 01.01.260304.175641, slot _b. It can erase data or permanently brick the device. Recovery is not guaranteed.**
+**The original unlock/reset/root was tested on 15051976, slot B. A later update of that already-unlocked box to 16202347, slot A, retained setup and root. Fresh unlocking and first-time root on 16202347 remain UNTESTED. All device-write paths can erase data or permanently brick the device. Recovery is not guaranteed.**
+
+The reset instructions below describe the original 15051976 unlock measurement. They are not a demonstrated new-firmware unbrick method. Experimental unlock/root users are solely responsible for choosing the risk and resulting loss or damage; the project authors take no responsibility for it.
 
 Preserve work/ and thumb drive captures. Do not delete guards or create a fresh run to force a retry.
 
-## Before internal flashing
+## During the reviewed firmware update
+
+Use the [dedicated update guide](FIRMWARE_UPDATE.md). If a flash or native OTA
+result is uncertain, keep power on and preserve `work/firmware-updates/`.
+Do not repeat `--apply`, reboot, reset or switch slots. `--verify` can reconcile
+completed writes from Android status and exact hashes without replaying them.
+A missing debugging connection may only require authorizing the computer again.
+
+The new boot_a write has a best-effort verified restore of the **new stock image**
+while Android/root remain available. It cannot recover after loss of power,
+storage or the running shell. Do not use the original boot_b restore command or
+an old boot image after upgrading. Rollback metadata increased; an intact old
+boot partition does not establish a working downgrade.
+
+Keep OTA-pause modules disabled until snapshot merge completes. The updater
+restores prior controls after merge. A factory reset does not repair an invalid
+boot partition and would erase the setup the updater is intended to preserve.
+
+## Before internal flashing in an unlock/root experiment
 
 Let a failed read or USB boot helper finish its timeout. Remove the thumb drive and power-cycle once if needed. The tested candidates fall back to stock startup without their USB gate.
 
@@ -54,4 +74,12 @@ Without Android/root, this command cannot help. The firmware profile includes th
 
 ## After success
 
-Keep backups and receipts. Do not relock with a modified image, use automatic Magisk installation, or switch slots based on this guide. OTA behavior and other firmware are untested.
+Keep backups and receipts. Do not relock with a modified image, use automatic Magisk installation, or switch slots based on this guide. Only the specifically documented upgrade has been measured. Fresh new-firmware unlocking, other update paths and recovery remain untested.
+
+For an experimental 16202347 root installation, the saved run binds recovery to
+the actual active slot A or B and the **16202347** stock boot backup. Do not use
+the original 15051976 image or switch slots as a rescue attempt. If ADB and root
+still work, the guarded `restore-stock` command also requires
+`--accept-risk --accept-untested-brick-risk --accept-sole-responsibility`.
+It attempts only this run's same-build active-slot restore and does not reboot.
+This is not a demonstrated recovery method on a newly unlocked 16202347 device.

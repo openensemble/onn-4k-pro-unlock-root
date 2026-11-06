@@ -1,0 +1,65 @@
+#!/system/bin/sh
+set -eu
+BASE=@DEVICE_DIR@
+TARGET=/dev/block/by-name/boot_a
+STOCK=$BASE/patch/input-boot.img
+PATCHED=$BASE/patch/new-boot.img
+STOCK_HASH=8c4b8f5e65fada161cd72450c20cf963c0e1d02aebb96337264e7b7a7ab4f26a
+PATCHED_HASH=89945a17cafdfb9d11b051ddd69c0a68fc7c6fe91b222d439a5036a1d59a50de
+OLD_B_HASH=2447a78a0580a804b3997b3920e9198a437aedf7294ec2907952d2ef751d36a3
+file_hash() { sha256sum "$1" | cut -d ' ' -f 1; }
+fail() { echo "GUARD_FAILED: $1" >&2; exit 1; }
+[ "$(id -u)" = 0 ] || fail root
+[ "$(cat /proc/sys/kernel/random/boot_id)" = @EXPECTED_BOOT_ID@ ] || fail boot_id
+[ "$(getprop ro.build.fingerprint)" = onn/jarvis/SNA:14/URO4.260304.011.B1/15051976:user/release-keys ] || fail running_firmware
+[ "$(getprop ro.boot.slot_suffix)" = _b ] || fail current_slot
+[ "$(getprop ro.boot.flash.locked)" = 0 ] || fail lock_state
+[ "$(getprop ro.boot.vbmeta.device_state)" = unlocked ] || fail avb_state
+[ "$(getprop sys.boot_completed)" = 1 ] || fail startup
+[ -f "$BASE/ota-completed-and-verified" ] || fail ota_receipt
+[ "$(readlink -f "$TARGET")" = /dev/block/mmcblk0p20 ] || fail target
+[ "$(blockdev --getsize64 "$TARGET")" = 100663296 ] || fail target_size
+[ "$(stat -c %s "$PATCHED")" = 100663296 ] || fail patch_size
+[ "$(file_hash "$STOCK")" = "$STOCK_HASH" ] || fail stock_file
+[ "$(file_hash "$PATCHED")" = "$PATCHED_HASH" ] || fail patch_file
+[ "$(file_hash "$TARGET")" = "$STOCK_HASH" ] || fail ota_target_content
+[ "$(file_hash /dev/block/by-name/boot_b)" = "$OLD_B_HASH" ] || fail old_slot_changed
+echo ALL_NEW_SLOT_ROOT_GUARDS_PASSED
+case "${1:-check}" in
+ check) exit 0 ;;
+ apply-authorized) ;;
+ *) fail action ;;
+esac
+mkdir "$BASE/root-flash-attempt" || fail previous_attempt
+restore_required=no
+finish() {
+ rc=$?
+ trap - EXIT HUP INT TERM
+ if [ "$restore_required" = yes ]; then
+   echo ATTEMPTING_VERIFIED_NEW_STOCK_BOOT_A_RESTORE >&2
+   set +e
+   if [ "$(file_hash "$STOCK")" = "$STOCK_HASH" ]; then
+     dd if="$STOCK" of="$TARGET" bs=1048576 count=96 conv=fsync,notrunc
+     sync
+     if [ "$(file_hash "$TARGET")" = "$STOCK_HASH" ]; then
+       echo NEW_STOCK_BOOT_A_RESTORED_AND_VERIFIED
+     else
+       echo RESTORE_UNVERIFIED_KEEP_POWER_ON_DO_NOT_REBOOT >&2
+     fi
+   fi
+   exit 1
+ fi
+ exit "$rc"
+}
+trap finish EXIT
+trap 'exit 1' HUP INT TERM
+blockdev --setrw "$TARGET"
+[ "$(blockdev --getro "$TARGET")" = 0 ] || fail target_readonly
+restore_required=yes
+dd if="$PATCHED" of="$TARGET" bs=1048576 count=96 conv=fsync,notrunc
+sync
+[ "$(file_hash "$TARGET")" = "$PATCHED_HASH" ] || fail patch_readback
+restore_required=no
+[ "$(file_hash /dev/block/by-name/boot_b)" = "$OLD_B_HASH" ] || fail old_slot_changed_after
+printf '%s\n' "$PATCHED_HASH" > "$BASE/root-flash-attempt/verified-sha256"
+echo NEW_BOOT_A_ROOT_IMAGE_READBACK_VERIFIED

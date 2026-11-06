@@ -86,12 +86,19 @@ def prepare_usb(device, run):
 
 def set_target(args, config, run):
     target = target_value(args.target)
+    replacements = []
     for kind in ['read', 'unlock', 'root']:
         runner = run / kind / 'test_later.py'
         text = runner.read_text()
-        needle = 'TARGET = ' + repr(config['target'])
-        require(text.count(needle) == 1, 'Unexpected saved target')
-        runner.write_text(text.replace(needle, 'TARGET = ' + repr(target)))
+        current = re.findall(r"^TARGET = '([^']+)'$", text, flags=re.M)
+        require(len(current) == 1 and current[0] in (config['target'], target), 'Unexpected saved target')
+        replacements.append((kind, runner, re.sub(r"^TARGET = '[^']+'$", 'TARGET = ' + repr(target), text, flags=re.M)))
+    # Validate all helpers first. Accept a helper already updated by an
+    # interrupted local address change, without replaying any device action.
+    for kind, runner, text in replacements:
+        temporary = runner.with_suffix('.py.tmp')
+        temporary.write_text(text)
+        temporary.replace(runner)
         refresh_kit_manifest(run / kind)
     config['target'] = target
     save(run / 'configuration.json', config)

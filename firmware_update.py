@@ -306,12 +306,19 @@ def pause_modules(device, run):
         enabled = device.root(f'if test -e {path}/disable; then echo disabled; else echo enabled; fi').stdout.strip()
         require(enabled in ('enabled', 'disabled'), 'Unknown module state')
         files = {}
-        for name in ('pause.sh', 'restore-state.sh'):
+        for name in ('pause.sh', 'restore-state.sh', 'SHA256SUMS'):
+            if name == 'SHA256SUMS':
+                present=device.root(f'if test -f {path}/{name}; then echo present; else echo absent; fi').stdout.strip()
+                require(present in ('present','absent'), 'Unknown OTA module checksum state')
+                if present == 'absent': continue
             content = device.root(f'cat {path}/{name}').stdout
             local = run / (path.rsplit('/', 1)[1] + '-' + name)
             local.write_text(content)
             files[name] = {'file': local.name, 'sha256': digest(local)}
-        modules.append({'path': path, 'enabled': enabled == 'enabled', 'files': files})
+        module={'path': path, 'enabled': enabled == 'enabled', 'files': files}
+        if 'SHA256SUMS' in files:
+            updated_module_content(run,module,'SHA256SUMS')  # Validate the saved manifest before any update.
+        modules.append(module)
     return modules
 
 
@@ -580,12 +587,24 @@ def follow_updater(device,command):
     return process.wait()
 
 
+def updated_module_content(run, module, name):
+    content=(run/module['files'][name]['file']).read_text()
+    if name != 'SHA256SUMS':
+        return content.replace(PROFILE['fingerprint'],NEW_PROFILE['fingerprint'])
+    for script in ('pause.sh','restore-state.sh'):
+        old=module['files'][script]['sha256']
+        new=hashlib.sha256(updated_module_content(run,module,script).encode()).hexdigest()
+        content,count=re.subn(r'^'+re.escape(old)+r'( [ *](?:\./)?'+re.escape(script)+r')$',
+                              lambda match:new+match[1],content,flags=re.M)
+        require(count==1, 'OTA module checksum manifest does not match saved '+script)
+    return content
+
+
 def migrate_pause_module(device, module):
     # Existing pause scripts may be pinned to the old fingerprint. Change only
     # that literal after checking their saved bytes; do not loosen the guard.
     for name, item in module['files'].items():
-        content=(device.run/item['file']).read_text()
-        updated=content.replace(PROFILE['fingerprint'],NEW_PROFILE['fingerprint'])
+        updated=updated_module_content(device.run,module,name)
         target=module['path']+'/'+name
         actual=device.root('sha256sum '+target).stdout.split()[0]
         changed_hash=hashlib.sha256(updated.encode()).hexdigest()
@@ -596,7 +615,17 @@ def migrate_pause_module(device, module):
             remote=device.remote+'/updated-'+name
             device.call('push',str(local),remote)
             require(device.root('sha256sum '+remote).stdout.split()[0]==changed_hash, 'Module upload mismatch')
-            device.root('cat '+remote+' > '+target+' && chmod 700 '+target)
+            # Replacing in place can leave a truncated script after a lost
+            # connection. Stage on the same filesystem, verify, then rename.
+            temporary=target+'.updating'
+            device.root(f'''set -eu
+cp {remote} {temporary}
+chmod 700 {temporary}
+[ "$(sha256sum {temporary} | cut -d ' ' -f 1)" = {changed_hash} ]
+mv -f {temporary} {target}
+''')
+        require(device.root('sha256sum '+target).stdout.split()[0]==changed_hash,
+                'Updated OTA pause script readback failed; keep the module disabled')
         item['updated_sha256']=changed_hash
 
 
@@ -648,11 +677,14 @@ def associate_original_run(device, report):
         saved=read(receipt_path)
         require(device.root('cat '+ota_updates.MODULE+'/owner').stdout.strip()==saved['owner'], 'Original guide OTA owner changed')
         for name,item in module['files'].items():
-            content=(device.run/item['file']).read_text().replace(PROFILE['fingerprint'],NEW_PROFILE['fingerprint'])
+            content=updated_module_content(device.run,module,name)
             (run/'updates/module'/name).write_text(content)
-            saved['files'][name]=item['updated_sha256']
+            if name != 'SHA256SUMS': saved['files'][name]=item['updated_sha256']
         save(receipt_path,saved)
-    config.update(firmware_mode='updated-16202347',active_slot='_a',target=device.config['target'])
+    if config['target'] != device.config['target']:
+        from onn import set_target
+        set_target(SimpleNamespace(target=device.config['target']), config, run)
+    config.update(firmware_mode='updated-16202347',active_slot='_a')
     save(run/'configuration.json',config); save(WORK/'current.json',config)
     save(run/'firmware-update-proof.json',{'verified':True,'device_binding':report['device_binding'],
                                          'update_run_id':report['run_id'],'fingerprint':NEW_PROFILE['fingerprint'],

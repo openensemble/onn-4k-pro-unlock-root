@@ -1,3 +1,5 @@
+**2026 onn 4K Pro:** [Use the separate unlock and root guide](https://github.com/openensemble/onn-4k-pro-2026-unlock-root).
+
 # Earlier onn. 4K Pro (jarvis / SNA) — unlock and permanent root
 
 [**Project website — compatibility, measured results, and setup overview**](https://openensemble.github.io/onn-4k-pro-unlock-root/)

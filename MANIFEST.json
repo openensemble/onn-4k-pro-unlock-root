@@ -3,7 +3,7 @@
   "files": {
     ".github/workflows/pages.yml": "94a289eb5000f4762672a87333337e288afd5a5fe42011f3902ad5ad94735bad",
     ".gitignore": "251e706875bc7f0874c771e1a2faa427ff616ff6128ef8a0b45dc460ce1cc44f",
-    "README.md": "cc563e0e6b2c817bf6721e869acf84fb98d7bf829a99a54e21e8810e96853a13",
+    "README.md": "c96a8af3ae8ea34e0fe48d24c453dbb466e697fc66e457e2f5178a315423bccc",
     "THIRD_PARTY.md": "d29adf61b7686944b99d08b56476ad9b7d9f4083e14e7d3b66245a037fcc08cf",
     "assets/Magisk-v30.7.apk": "e0d32d2123532860f97123d927b1bb86c4e08e6fd8a48bfc6b5bee0afae9ebd5",
     "assets/images/onn-4k-pro-2024.png": "402f4e4369512decc2858cd4ae958a1149f5da059584a18cf0f29eab43cb33fc",
